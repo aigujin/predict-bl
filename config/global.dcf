@@ -1,0 +1,13 @@
+data_loading: FALSE
+cache_loading: TRUE
+recursive_loading: FALSE
+munging: FALSE
+logging: FALSE
+load_libraries: TRUE
+libraries: reshape2, plyr, ggplot2, stringr, xts,
+      parallel, PerformanceAnalytics, MASS,
+      data.table, ProjectTemplate, abind,scales
+as_factors: TRUE
+data_tables: FALSE
+version: 0.6
+attach_internal_libraries: TRUE

@@ -1,0 +1,24 @@
+.Rproj.user
+.Rhistory
+*.RData
+data/
+cache/
+eda/
+## Core latex/pdflatex auxiliary files:
+*.tex
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.gz
+*.blg
+## Intermediate documents:
+*.dvi
+*-converted-to.*
+# these rules might exclude image files for figures etc.
+*.ps
+*.eps
+*.pdf
