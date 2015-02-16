@@ -66,16 +66,19 @@ stocks <- unique(market.set[,Stock])
 q.data <- na.omit(setkey(q.data[,':='(year=format(s.Date,'%Y'))],Stock)[stocks])
 
 core.dt <- q.data[,core.b:=.N>=12,by=list(Stock,Broker)][(core.b)][,true:=rank(score),by=list(q.id,Stock)][,core.s:=.N>=3,by=list(q.id,Stock)][(core.s)][,core.q:=length(unique(q.id))>=8,by=.(Stock)][(core.q)]
-
+broker.vvs <- acast(melt(unique(core.dt[,broker.vvs.f(PT,priceAdj),by=list(q.id,Stock)],by=c('q.id','Stock')),id.vars = c('q.id','Stock'),measure.vars = c('uncertainty','assym','dispersion')),q.id~Stock~variable)
 #stats.q.data <- summary.stat(q.data[!is.na(trunk.view),])
 
 ### General stat of TP/P-1
 #stats.tper <- setnames(rbind(q.data[!is.na(trunk.view),mean(trunk.view,na.rm=T),by=list(year)],data.table(cbind(year='All',V1=q.data[!is.na(trunk.view),mean(trunk.view,na.rm=T)])))[,V1:=as.numeric(as.character(V1))],'V1','TP/P-1')
 
 
-bl.stocks <- intersect(unique(market.set[,Stock]),dimnames(array.all.vvs)[[2]])
+bl.stocks <- intersect(intersect(intersect(stocks,dimnames(array.all.vvs)[[2]]),unique(core.dt[,Stock])),dimnames(broker.vvs)[[2]])
 
-ind.v <- setnames(data.table(reshape2::melt(array.all.vvs[,eps.stocks,])),c('Quarter','Stock','Var','value'))
+stock.vvs <- vvs.combine(bl.stocks,broker.vvs,array.all.vvs,43)
+
+
+ind.v <- setnames(data.table(reshape2::melt(stock.vvs[,bl.stocks,])),c('Quarter','Stock','Var','value'))
 desc.ind <- acast(setnames(ind.v[,descriptive.f(value,basic=T),by=.(Var)],c('Var','Stat','value')),Var~Stat,value.var = 'value')
 
 data.to.display <- c('nbr.val','median', 'mean','std.dev')
