@@ -1,5 +1,5 @@
 rm(list=ls())
-setwd('~/Dropbox/workspace/Projects/BL-strategies/')
+setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
 
 library(ProjectTemplate)
 load.project()
@@ -7,15 +7,12 @@ delta<-1L;tau=1/50;baselines <- c('true','naive','default');methods<-c('raw','1d
 ##rolling rankings: 20 qtrs - no winning; 16 qtrs - win roll.sd (last); 12
 require(labelRank)
 ### market data: ~ 113 sec (mcapply: ~ 52 sec)
-system.time(source('munge/01-data.q.ret.R'))
-
-### data for first paper
-system.time(source('src/paper.trading.APS.true.R'))
+system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/01-data.q.ret.R'))
 
 ### State var. data: ~118 sec
-system.time(source('munge/02-state-variables.R'))
+system.time(source('munge/state-variables.R'))
 ### Analysts ranking data: ~ 280 sec
-system.time(source('munge/03-analysts.process.R'))
+system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/03-analysts.process.R'))
 ### Predicting ~ 347 sec
 system.time(source('src/predicting.R'))
 
@@ -26,7 +23,7 @@ ggplot(pt.accu[,mean(value),by=.(q.id,variable)],aes(x=as.Date(q.id),y=V1,group=
 ### trading: ~ 322 sec
 system.time(source('src/trading.R'))
 
-ggplot(res.accu[,mean(value,na.rm=T),by=.(q.id,variable,conf)],aes(x=as.Date(q.id),y=V1,color=variable,group=variable))+geom_line()+facet_grid(conf~.,scale='free_y')+theme_bw()
+#ggplot(res.accu[,mean(value,na.rm=T),by=.(q.id,variable,conf)],aes(x=as.Date(q.id),y=V1,color=variable,group=variable))+geom_line()+facet_grid(conf~.,scale='free_y')+theme_bw()
 
 
 ggplot(final.bl,aes(x=as.Date(Quarters),y=cum.ret,group=Method,color=Method))+geom_line(size=0.5)+ylab('Portfolio wealth (initial=$100)')+xlab('Quarters')+ggtitle('Portfolio performance with $100 initial investment')+theme_bw(base_family='Avenir')+theme(plot.title = element_text(colour = "Blue"),legend.position='top')+scale_color_manual(values=getPalette(colourCount))+guides(color=guide_legend(nrow=1))+geom_hline(yintercept=100L)+facet_grid(~confAgg,scale='free_x')

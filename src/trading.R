@@ -1,5 +1,5 @@
 
-source('lib/BL-functions.R')
+#source('lib/BL-functions.R')
 #stocks <- sort(unique(unlist(lapply(market.list,function(m){m$stock.names}))))
 #quarters <- setnames(unique(market.set[,.(Quarters)]),'q.id')[,q.id:=as.yearqtr(q.id)]
 
