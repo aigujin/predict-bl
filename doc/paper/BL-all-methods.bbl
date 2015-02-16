@@ -1,0 +1,178 @@
+\begin{thebibliography}{}
+
+\bibitem[Ahmed et~al., 2005]{ahmed2005}
+Ahmed, A., Nainar, S., and Zhou, J. (2005).
+\newblock Do analysts' earnings forecasts fully reflect the information in
+  accruals?
+\newblock {\em Canadian Journal of Administrative Sciences/Revue Canadienne des
+  Sciences de l'Administration}, 22(4):329--342.
+
+\bibitem[Aiguzhinov et~al., 2013]{aiguzhinov2013a}
+Aiguzhinov, A., Serra, A., and Soares, C. (2013).
+\newblock Are rankings of financial analysts any good for investors?
+
+\bibitem[Aiguzhinov et~al., 2010]{aiguzhinov2010}
+Aiguzhinov, A., Soares, C., and Serra, A. (2010).
+\newblock A similarity-based adaptation of naive {B}ayes for label ranking:
+  Application to the metalearning problem of algorithm recommendation.
+\newblock In {\em Discovery Science}, volume 6332 of {\em Lecture Notes in
+  Computer Science}, pages 16--26.
+
+\bibitem[Barber et~al., 2001]{barber2001}
+Barber, B., Lehavy, R., McNichols, M., and Trueman, B. (2001).
+\newblock {Can Investors Profit from the Prophets? Security Analyst
+  Recommendations and Stock Returns}.
+\newblock {\em The Journal of Finance}, 56(2):531--563.
+
+\bibitem[Barron et~al., 1998]{barron1998}
+Barron, O., Kim, O., Lim, S., and Stevens, D. (1998).
+\newblock Using analysts' forecasts to measure properties of analysts'
+  information environment.
+\newblock {\em The Accounting Review}, 73(4):421--433.
+
+\bibitem[Barron et~al., 2009]{barron2009}
+Barron, O., Stanford, M., and Yu, Y. (2009).
+\newblock Further evidence on the relation between analysts' forecast
+  dispersion and stock returns.
+\newblock {\em Contemporary Accounting Research}, 26(2):329--357.
+
+\bibitem[Bhushan, 1989]{bhushan1989}
+Bhushan, R. (1989).
+\newblock Firm characteristics and analyst following.
+\newblock {\em Journal of Accounting and Economics}, 11(2-3):255--274.
+
+\bibitem[Black and Litterman, 1992]{black1992}
+Black, F. and Litterman, R. (1992).
+\newblock {Global portfolio optimization}.
+\newblock {\em Financial Analysts Journal}, 48(5):28--43.
+
+\bibitem[Bouckaert, 2005]{bouckaert2005}
+Bouckaert, R.~R. (2005).
+\newblock Naive {B}ayes classifiers that perform well with continuous
+  variables.
+\newblock In {\em AI 2004: Advances in Artificial Intelligence}, volume 3339 of
+  {\em Lecture Notes in Computer Science}, pages 85--116.
+
+\bibitem[Brown and Mohammad, 2003]{brown2003}
+Brown, L. and Mohammad, E. (2003).
+\newblock {The Predictive Value of Analyst Characteristics}.
+\newblock {\em Journal of Accounting, Auditing and Finance}, 18(4).
+
+\bibitem[Clement, 1999]{clement1999}
+Clement, M. (1999).
+\newblock {Analyst forecast accuracy: Do ability, resources, and portfolio
+  complexity matter?}
+\newblock {\em Journal of Accounting and Economics}, 27(3):285--303.
+
+\bibitem[Creamer and Stolfo, 2009]{creamer2009}
+Creamer, G. and Stolfo, S. (2009).
+\newblock {A link mining algorithm for earnings forecast and trading}.
+\newblock {\em Data Mining and Knowledge Discovery}, 18(3):419--445.
+
+\bibitem[Diether et~al., 2002]{diether2002}
+Diether, K., Malloy, C., and Scherbina, A. (2002).
+\newblock Differences of opinion and the cross section of stock returns.
+\newblock {\em The Journal of Finance}, 57(5):2113--2141.
+
+\bibitem[Emery and Li, 2009]{emery2009}
+Emery, D. and Li, X. (2009).
+\newblock Are the {W}all {S}treet analyst rankings popularity contests?
+\newblock {\em Journal of Financial and Quantitative Analysis}, 44(2):411.
+
+\bibitem[Fama, 1970]{fama1970ecm}
+Fama, E. (1970).
+\newblock {Efficient Capital Markets: A Review of Empirical Work}.
+\newblock {\em The Journal of Finance}, 25:383--417.
+
+\bibitem[Grossman and Stiglitz, 1980]{grossman1980iie}
+Grossman, S. and Stiglitz, J. (1980).
+\newblock {On the Impossibility of Informationally Efficient Prices}.
+\newblock {\em American Economic Review}, 70:393--408.
+
+\bibitem[Henley et~al., 2003]{henley2003}
+Henley, A., Carruth, A., and Dickerson, A. (2003).
+\newblock Industry-wide versus firm-specific uncertainty and investment:
+  British company panel data evidence.
+\newblock {\em Economics Letters}, 78(1):87--92.
+
+\bibitem[Hilary and Hsu, 2013]{hilary2013}
+Hilary, G. and Hsu, C. (2013).
+\newblock Analyst forecast consistency.
+\newblock {\em The Journal of Finance}, 68(1):271--297.
+
+\bibitem[Hill and Stone, 1980]{hill1980}
+Hill, N. and Stone, B. (1980).
+\newblock Accounting betas, systematic operating risk, and financial leverage:
+  A risk-composition approach to the determinants of systematic risk.
+\newblock {\em Journal of Financial and Quantitative Analysis},
+  15(03):595--637.
+
+\bibitem[Hope and Kang, 2005]{hope2005}
+Hope, O. and Kang, T. (2005).
+\newblock The association between macroeconomic uncertainty and analysts'
+  forecast accuracy.
+\newblock {\em Journal of International Accounting Research}, 4(1):23--38.
+
+\bibitem[Idzorek, 2002]{idzorek2002}
+Idzorek, T. (2002).
+\newblock A step-by-step guide to the {B}lack-{L}itterman model.
+\newblock {\em Forecasting Expected Returns in the Financial Markets}, page~17.
+
+\bibitem[Jegadeesh et~al., 2004]{jegadeesh2004}
+Jegadeesh, N., Kim, J., Krische, S., and Lee, C. (2004).
+\newblock Analyzing the analysts: When do recommendations add value?
+\newblock {\em The Journal of Finance}, 59(3):1083--1124.
+
+\bibitem[Lev and Thiagarajan, 1993]{lev1993}
+Lev, B. and Thiagarajan, S. (1993).
+\newblock Fundamental information analysis.
+\newblock {\em Journal of Accounting research}, 31(2):190--215.
+
+\bibitem[Parkash et~al., 1995]{parkash1995}
+Parkash, M., Dhaliwal, D., and Salatka, W. (1995).
+\newblock How certain firm-specific characteristics affect the accuracy and
+  dispersion of analysts' forecasts:: A latent variables approach.
+\newblock {\em Journal of Business Research}, 34(3):161--169.
+
+\bibitem[Richardson, 2000]{richardson2000}
+Richardson, V.~J. (2000).
+\newblock Information asymmetry and earnings management: Some evidence.
+\newblock {\em Review of Quantitative Finance and Accounting}, 15:325--347.
+
+\bibitem[Sheng and Thevenot, 2012]{sheng2012}
+Sheng, X. and Thevenot, M. (2012).
+\newblock A new measure of earnings forecast uncertainty.
+\newblock {\em Journal of Accounting and Economics}, 53(1):21--33.
+
+\bibitem[Sousa and Serra, 2008]{sousa2008}
+Sousa, S. and Serra, A. (2008).
+\newblock What drives idiosyncratic volatility over time?
+\newblock {\em Portuguese Economic Journal}, 7(3):155--181.
+
+\bibitem[Trueman and Titman, 1988]{trueman1988}
+Trueman, B. and Titman, S. (1988).
+\newblock An explanation for accounting income smoothing.
+\newblock {\em Journal of Accounting Research}, 26:127--139.
+
+\bibitem[Vogt et~al., 2007]{vogt2007}
+Vogt, M., Godden, J., and Bajorath, J. (2007).
+\newblock {Bayesian interpretation of a distance function for navigating
+  high-dimensional descriptor spaces.}
+\newblock {\em Journal of chemical information and modeling}, 47(1):39--46.
+
+\bibitem[Womack, 1996]{womack1996}
+Womack, K. (1996).
+\newblock {Do Brokerage Analysts' Recommendations Have Investment Value?}
+\newblock {\em The Journal of Finance}, 51:137--168.
+
+\bibitem[Zhang, 2006]{zhang2006}
+Zhang, X. (2006).
+\newblock Information uncertainty and stock returns.
+\newblock {\em The Journal of Finance}, 61(1):105--137.
+
+\bibitem[Zivot and Wang, 2003]{zivot2003}
+Zivot, E. and Wang, J. (2003).
+\newblock {\em Modeling financial time series with S-PLUS}, volume 191.
+\newblock Springer Verlag.
+
+\end{thebibliography}
