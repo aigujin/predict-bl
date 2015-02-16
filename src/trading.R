@@ -9,14 +9,14 @@ quarters <- setnames(data.table(unique(ranked.pt.dt[,q.id])),'q.id')[,q.id:=as.y
 
 
 
-pt.ret <-setkey(melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,Stock),.SDcols=c('q.id','Broker','Stock','b.view')][,.(q.id,Broker,Stock,b.view)][,true:=truncate.f(b.view,percentile)][,naive:=c(NA,head(true,-1))][,':='(default=grow.window.f(naive,seq_len(length(naive)),mean,na.rm=T),raw=true,'1diff'=true,roll.sd=true,random=true),by=.(Broker,Stock)],id.vars = c('q.id','Stock','Broker'),measure.vars = c(baselines,methods),value.name = 'exp.ret',variable.name = 'Method'),q.id,Stock,Broker,Method)[ranked.pt.dt][,rank.exp.ret.f(rank,exp.ret),by=.(q.id,Stock,Method)][V1!=0,]
+pt.ret <-setkey(melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,Stock),.SDcols=c('q.id','Broker','Stock','b.view')][,.(q.id,Broker,Stock,b.view)][,true:=truncate.f(b.view,percentile)][,naive:=c(NA,head(true,-1))][,':='(default=grow.window.f(true,seq_len(length(true)),mean,na.rm=T),raw=true,'1diff'=true,roll.sd=true,random=true),by=.(Broker,Stock)],id.vars = c('q.id','Stock','Broker'),measure.vars = c(baselines,methods),value.name = 'exp.ret',variable.name = 'Method'),q.id,Stock,Broker,Method)[ranked.pt.dt][,rank.exp.ret.f(rank,exp.ret),by=.(q.id,Stock,Method)][V1!=0,]
 
 pt.list.rank <- acast(pt.ret,q.id~Stock~Method,value.var='V1')
 
 
 require(scales)
 
-res.accu <- melt(setkey(melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,':='(default=grow.window.f(naive,seq_len(length(naive)),mean,na.rm=T),raw=NA_real_,'1diff'=NA_real_,roll.sd=NA_real_,random=NA_real_),by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,methods),value.name='cons'),q.id,Stock,variable)[setkey(pt.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],q.id,Stock,variable)],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
+res.accu <- melt(setkey(melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,':='(default=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),raw=NA_real_,'1diff'=NA_real_,roll.sd=NA_real_,random=NA_real_),by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,methods),value.name='cons'),q.id,Stock,variable)[setkey(pt.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],q.id,Stock,variable)],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
 
 set(res.accu,i=which(is.infinite(res.accu[[5L]])),5L,value=9e+15 )
 
