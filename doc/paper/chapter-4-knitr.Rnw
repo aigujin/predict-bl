@@ -1,30 +1,33 @@
 \documentclass{article}
+\usepackage{fancyhdr}
+\usepackage{time}
 \usepackage{authblk}
 \usepackage{amsmath, amssymb}
 \usepackage{caption}
-\captionsetup[table]{textfont={Large},labelfont={normalsize},labelsep=newline,justification=justified,singlelinecheck=true, skip=0pt}
-\captionsetup[figure]{textfont={Large},labelfont={normalsize},labelsep=newline,justification=justified,singlelinecheck=true, skip=0pt}
-\usepackage{fullpage}
-\usepackage{rotating}
-\usepackage{xcolor}
-\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\captionsetup[table]{textfont={large},labelfont={normalsize},labelsep=newline,justification=justified,singlelinecheck=true, skip=0pt}
+\captionsetup[figure]{textfont={large},labelfont={normalsize},labelsep=newline,justification=justified,singlelinecheck=true, skip=0pt}
+%\usepackage{fullpage}
+%\usepackage{rotating}
+%\usepackage{xcolor}
+\usepackage[hyphens]{url}
+\usepackage[colorlinks=true,urlcolor=blue,citecolor=black]{hyperref}
+%\usepackage{breakurl}
 \usepackage{times}
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{tabularx}
 \usepackage{booktabs}
-
+\usepackage{multirow}
 %\onehalfspacing
 \doublespace
-\usepackage{natbib}
-%\usepackage[natbibapa]{apacite}
+\usepackage[longnamesfirst]{natbib}
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \newcommand{\true}{\textit{true}}
-\newcommand{\naive}{\textit{naive}}
-\newcommand{\default}{\textit{default}}
+\newcommand{\naive}{\textit{recent}}
+\newcommand{\default}{\textit{all-time}}
 \newcommand{\market}{\textit{market}}
 \newcommand{\raw}{\textit{raw}}
 \newcommand{\diff}{\textit{diff}}
@@ -33,7 +36,18 @@
 
 \newcolumntype{Y}{>{\raggedleft\arraybackslash}X}% raggedleft column X
 \newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+%-------------------------------------------------------------------------
+% take the % away on next line to produce the final camera-ready version
+% Be sure to remove \thispagestyle{fancy} as well after the \maketitle.
+%\pagestyle{empty}
+\pagestyle{fancy}
 
+\newcommand\myTime{\now}
+\fancyhead{}
+\fancyhead[CO, CE]{\texttt{-Draft-}}
+\fancyhead[RO, RE]{\texttt{\today, \myTime}}
+\setlength{\headheight}{2\baselineskip}
+\renewcommand{\headrulewidth}{0pt}
 
 \begin{document}
 
@@ -45,6 +59,7 @@ concordance=TRUE
 @
 
 <<load.data,echo=F,warning=FALSE,message=FALSE>>=
+strategies <- c('true','recent','all-time')
 setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
 library(reshape2)
 library(descr)
@@ -53,16 +68,16 @@ library(ggplot2)
 library(stringr)
 library(zoo)
 library(xtable)
+library(abind)
 library(PerformanceAnalytics)
 load('cache/q.data.RData')
 load('cache/final.bl.RData')
-load('cache/market.set.RData')
+load('~/Dropbox/workspace/Projects/BL-strategies/cache/market.set.RData')
 load('cache/array.all.vvs.RData')
-load('cache/q.data.RData')
 source('lib/aux.functions.R')
+source('lib/ranking.scripts.R')
 trunk.percent <- 0.05
 stocks <- unique(market.set[,Stock])
-#q.data[,quantile(b.view,c(trunk.percent,1-trunk.percent),na.rm=T)]
 q.data <- na.omit(setkey(q.data[,':='(year=format(s.Date,'%Y'))],Stock)[stocks])
 
 core.dt <- q.data[,core.b:=.N>=12,by=list(Stock,Broker)][(core.b)][,true:=rank(score),by=list(q.id,Stock)][,core.s:=.N>=3,by=list(q.id,Stock)][(core.s)][,core.q:=length(unique(q.id))>=8,by=.(Stock)][(core.q)]
@@ -79,28 +94,47 @@ stock.vvs <- vvs.combine(bl.stocks,broker.vvs,array.all.vvs,43)
 
 
 ind.v <- setnames(data.table(reshape2::melt(stock.vvs[,bl.stocks,])),c('Quarter','Stock','Var','value'))
-desc.ind <- acast(setnames(ind.v[,descriptive.f(value,basic=T),by=.(Var)],c('Var','Stat','value')),Var~Stat,value.var = 'value')
+
+stat.all.vvs <- acast(setnames(ind.v[,descriptive.f(value,basic=T),by=.(Var)],c('Var','Stat','value')),Var~Stat,value.var = 'value')
 
 data.to.display <- c('nbr.val','median', 'mean','std.dev')
 methods<-c('raw','1diff','random','roll.sd')
-baselines<-c('true','naive','default',methods)
-###Desriptive stat of independent variables
-stat.all.vvs <- t(apply(all.vvs.array,3,function(vvs){stat.desc(vvs[!is.infinite(vvs)]) }))
-descr.pt.accuracy <- t(sapply(baselines,function(i){stat.desc(accuracy[i,,][!is.infinite(accuracy[i,,])]) }))
+baselines<-c('true','naive','default')
 
+for(a in 1:3){
+set(final.bl,i=which(final.bl[[3L]]==baselines[a]),3L,value=strategies[a])
+}
+
+
+final.bl$Method <- factor(final.bl$Method,levels=unique(final.bl$Method)[c(8,4,3,6,1,5,7,2)])
+final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(2,1)])
+
+final.bl <- final.bl[,ann.ret:=ann.ret*100][,ann.st:=ann.sd*100]
+bl.results <- acast(unique(melt(data = final.bl,id.vars = c('Method','confAgg'),measure.vars  = c('ann.ret','ann.st','ann.sr','meanViews','Ave.TO')),by=c('Method','variable','confAgg')),Method~confAgg~variable,value.var = 'value')
+
+quarters <- unique(final.bl[,Quarters])
+periods.id <- c(paste(gsub('[[:space:]]','',rollapplyr(as.character(quarters),20,first,by=4)),gsub('[[:space:]]','',rollapplyr(as.character(quarters),20,last,by=4)),sep='/'),'All period')
+
+periods <- rbind(final.bl[,data.table(rollapplyr(port.ret,20,roll.ret.f,by=4,partial=F)),by=.(confAgg,Method)][,strat:='yes'],final.bl[,data.table(rollapplyr(ns.port.ret,20,roll.ret.f,by=4,partial=F)),by=.(confAgg,Method)][,strat:='no'],final.bl[,data.table(roll.ret.f(port.ret)),by=.(confAgg,Method)][,strat:='yes'],final.bl[,data.table(roll.ret.f(ns.port.ret)),by=.(confAgg,Method)][,strat:='no'])[,period:=periods.id,by=.(confAgg,Method,strat)][,sr:=ann.ret/ann.sd]
+
+
+periods.array <- acast(unique(melt(periods,id.vars = c('confAgg','Method','period','strat')),by=c('confAgg','Method','period','strat','variable')),period~confAgg~Method~strat~variable,value.var = 'value')
+
+start.year <- format(as.Date(final.bl[,head(Quarters,1)]),'%Y')
+end.year <- format(as.Date(final.bl[,tail(Quarters,1)]),'%Y')
 ####Descr stat of TP/P-1
-descr.stat.pt <- annual.desc.stat(extendent.exp.ret,seq(40,84,4))
-total.stat.pt <- stat.desc(extendent.exp.ret[!is.infinite(extendent.exp.ret)])
+#descr.stat.pt <- annual.desc.stat(extendent.exp.ret,seq(40,84,4))
+#total.stat.pt <- stat.desc(extendent.exp.ret[!is.infinite(extendent.exp.ret)])
 ###BL model
-semi <- seq(1,43,1)
-period.sel <- semi[4:length(semi)][2:40]
-full.period<-c(1:((length(semi))-4))
-pre.crisis<-c(1:((length(semi))-8))
-post.crisis<-c(((length(semi))-7):((length(semi))-4))
-periods <- list('full.period','pre.crisis','post.crisis')
+#semi <- seq(1,43,1)
+#period.sel <- semi[4:length(semi)][2:40]
+#full.period<-c(1:((length(semi))-4))
+#pre.crisis<-c(1:((length(semi))-8))
+#post.crisis<-c(((length(semi))-7):((length(semi))-4))
+#periods <- list('full.period','pre.crisis','post.crisis')
 
-results.pt<- abind(lapply(periods,function(p){final.results.f(p,baselines,weights,market.inputs[period.sel],mw[period.sel],xts.sp.returns.q[period.sel,]/100)}),along=3,new.names=list(NULL,NULL,periods))
-sel.data.pt <- xts.ret.full.full.period
+#results.pt<- abind(lapply(periods,function(p){final.results.f(p,baselines,weights,market.inputs[period.sel],mw[period.sel],xts.sp.returns.q[period.sel,]/100)}),along=3,new.names=list(NULL,NULL,periods))
+#sel.data.pt <- xts.ret.full.full.period
 @
 
 \title{Rankings of analysts as means to profits}
@@ -135,7 +169,8 @@ The solution for the second problem relies on the Black-Litterman (BL) model \ci
 
 %We rank analyst based on errors they make when issuing price target information. We convert PT into the expected returns and feed them to the Black-Litterman model. The level of trust in these expected returns calculates form the accuracy of predicted rankings evaluated to the true.
 
-The result of our paper confirms that, on average, analysts at the top ranks stay the same from quarter to quarter implying the top analysts' consistency studied in \cite{hilary2013}. We also show that rankings of analysts produce a beneficial trading strategy. The Sharpe ratio our method is \Sexpr{results.pt[5,3,1]} compared with the market \Sexpr{results.pt[8,3,1]}.
+The result of our paper confirms that, on average, analysts at the top ranks stay the same from quarter to quarter implying the top analysts' consistency studied in \cite{hilary2013}. We also show that rankings of analysts produce a beneficial trading strategy.
+%The Sharpe ratio our method is \Sexpr{results.pt[5,3,1]} compared with the market \Sexpr{results.pt[8,3,1]}.
 
 
 
@@ -218,7 +253,7 @@ where $\rho$ is the Spearman correlation of the predicted rankings (see \ref{sec
 \label{sec:rankings}
 
 
-To implement  the trading strategy, we focus on the  S\&P500 stocks. Given that we base  stock views on the analysts' price target information, the period of the strategy experiment runs from the first quarter of 2001 until the last quarter of 2009. We get price target from ThomsonReuters   The list of S\&P constituents and stock daily prices data is from DataStream as well as the market capitalization data.  The total number of brokers\footnote{We use words ``analyst" and ``broker" interchangeably  and we assume it is  one person.} in price target dataset includes \Sexpr{dim(extendent.exp.ret)[[2]]} brokers covering \Sexpr{dim(extendent.exp.ret)[[3]]} stocks all of which at some point in time were part of the S\&P 500. Contrary to other studies on analysts' price targets, we do not truncate our sample based based on the misalignment errors found on I/B/E/S data. As we mention, we weight the analysts' expected returns $r_{a,s}$ by the analysts' rank. This assures that very optimistic analysts' would be penalize by the lower rank and still contribute to $Q_{q,s}$. Given the fact that analysts issue price targets annually, we assume that an analyst keeps her price target forecast open for one calendar year until it revised or expires after one year.
+To implement  the trading strategy, we focus on the  S\&P500 stocks. Given that we base  stock views on the analysts' price target information, the period of the strategy experiment runs from the first quarter of 2001 until the last quarter of 2009. We get price target from ThomsonReuters   The list of S\&P constituents and stock daily prices data is from DataStream as well as the market capitalization data.  The total number of brokers\footnote{We use words ``analyst" and ``broker" interchangeably  and we assume it is  one person.} in price target dataset includes \Sexpr{core.dt[,.N,by=Broker][,.N]} brokers covering \Sexpr{core.dt[,.N,by=Stock][,.N]} stocks all of which at some point in time were part of the S\&P 500. Contrary to other studies on analysts' price targets, we do not truncate our sample based based on the misalignment errors found on I/B/E/S data. As we mention, we weight the analysts' expected returns $r_{a,s}$ by the analysts' rank. This assures that very optimistic analysts' would be penalize by the lower rank and still contribute to $Q_{q,s}$. Given the fact that analysts issue price targets annually, we assume that an analyst keeps her price target forecast open for one calendar year until it revised or expires after one year.
 
 
 %table (\ref{tab:stat}) shows the statistics of the expected analysts return $r_{q,a,s}$. Consistent with the literature \citep{da2011,bradshaw2012,zhou2013}, we find the average expected annual analysts' return to be highly upward biased (\Sexpr{round(total.stat.pt['mean'],2)}, median=\Sexpr{round(total.stat.pt['median'],2)}).
@@ -248,13 +283,13 @@ To evaluate our predicted rankings, we build two ranking baselines: \naive{} ---
 \end{itemize}
 
 Consider an example of ranking problem presented in table \ref{tab:ranking-example}. In this example, we have three brokers and artificial values of independent variables $x_1 \ldots x_4$. Our goal is to predict the rankings for the period $t$, given the values of independent variables and rankings known up to period $t-1$. For example, at  $t=3$ \true{} is $\{1,2,3\}$, \naive{} is $\{2,3,1\}$, and \default{} is $\{A=(1+2)/2,B=(2+3)/2,C=(3+1)/2\} \Rightarrow \{1.5,2.5,2.0\} \Rightarrow \{1,3,2\}$.
-
-Figure (\ref{fig:tr-pmafe}) plots the relation between the actual ranking and the forecast errors (PMAFE). We convert absolute rankings into relative terms by applying:
-\begin{equation}
-relRank_{q,a,s}=\frac{rank_{q,s,a}}{\max{rank_{q,s}}}
-\label{rel-rankings}
-\end{equation}
-We observe that the magnitude of the errors increases with the increase of the rankings. That is, most of the errors are done at the bottom of the rankings. This conclusion confirms previous findings of consistency of the brokers.
+%
+% Figure (\ref{fig:tr-pmafe}) plots the relation between the actual ranking and the forecast errors (PMAFE). We convert absolute rankings into relative terms by applying:
+% \begin{equation}
+% relRank_{q,a,s}=\frac{rank_{q,s,a}}{\max{rank_{q,s}}}
+% \label{rel-rankings}
+% \end{equation}
+% We observe that the magnitude of the errors increases with the increase of the rankings. That is, most of the errors are done at the bottom of the rankings. This conclusion confirms previous findings of consistency of the brokers.
 
 \subsection{Label ranking algorithm}
 \label{sec:lr}
@@ -379,29 +414,35 @@ Each of these methods produces a different set of attributes. By using the algor
 
 \section{Empirical Results}
 \label{sec:results}
-\subsection{Ranking accuracy: top/bottom analysis}
-We begin with the analysis of ranking accuracy that is how well does our methods of predicting the rankings fit the \true{}. Table (\ref{tab:accuracy}) depicts the average Spearman correlation (eq. \ref{eq:spearman}). We observe that \naive{} achieve the average correlation of \Sexpr{round(descr.pt.accuracy['naive','mean'],3)} (median = \Sexpr{round(descr.pt.accuracy['naive','median'],3)}). From the four different methods of label ranking the most successful is \rollsd{} with correlation of \Sexpr{round(descr.pt.accuracy['roll.sd','mean'],3)} (median = \Sexpr{round(descr.pt.accuracy['roll.sd','median'],3)}). The result of the \naive{} method suggests that, on average, last period analysts stay at the same rank for the next period. This confirms with the previous studies identifying the consistency among the analysts \citep{hilary2013}. However, we want to see if it is all analysts that stay at the same ranks or the ones who were at the top ranks or at the bottom.  To see it, we apply a procedure to separate the top ranks from the bottom ones. This would allows us to see where the most errors in rankings were happening: at the top or at the bottom.
+%\subsection{Ranking accuracy: top/bottom analysis}
+%We begin with the analysis of ranking accuracy that is how well does our methods of predicting the rankings fit the \true{}. Table (\ref{tab:accuracy}) depicts the average Spearman correlation (eq. \ref{eq:spearman}). We observe that \naive{} achieve the average correlation of \Sexpr{round(descr.pt.accuracy['naive','mean'],3)} (median = \Sexpr{round(descr.pt.accuracy['naive','median'],3)}). From the four different methods of label ranking the most successful is \rollsd{} with correlation of \Sexpr{round(descr.pt.accuracy['roll.sd','mean'],3)} (median = \Sexpr{round(descr.pt.accuracy['roll.sd','median'],3)}). The result of the \naive{} method suggests that, on average, last period analysts stay at the same rank for the next period. This confirms with the previous studies identifying the consistency among the analysts \citep{hilary2013}. However, we want to see if it is all analysts that stay at the same ranks or the ones who were at the top ranks or at the bottom.  To see it, we apply a procedure to separate the top ranks from the bottom ones. This would allows us to see where the most errors in rankings were happening: at the top or at the bottom.
 
 
-First, we used the relative rankings from (eq. \ref{rel-rankings}) and split the ranking set in two parts. We consider as the top rank the ones that are in the top 5\% of the rankings. That is: $top_{q,a,s}=relRank_{q,a,s}[0\ldots 0.05]$ and bottom: $bottom_{q,a,s}=relRank_{q,a,s}[0.06 \ldots 1]$. We sum  $top_{s,a,q}$ to get a score and we find the euclidean distance between the score of $top_{q,a,s}$ of  \true{} and the score of $top_{q,a,s}$ for all forecast rankings. The assumption is: the less the distance, the more accurate are the rankings. Finally, we normalized the distances across all stocks to get stocks with the perfect prediction of top rankings with value of 0 and stocks where the distance is the maximum among all stocks with value of 1. For $bottom_{s,a,q} $ the analysis is the same.
+%First, we used the relative rankings from (eq. \ref{rel-rankings}) and split the ranking set in two parts. We consider as the top rank the ones that are in the top 5\% of the rankings. That is: $top_{q,a,s}=relRank_{q,a,s}[0\ldots 0.05]$ and bottom: $bottom_{q,a,s}=relRank_{q,a,s}[0.06 \ldots 1]$. We sum  $top_{s,a,q}$ to get a score and we find the euclidean distance between the score of $top_{q,a,s}$ of  \true{} and the score of $top_{q,a,s}$ for all forecast rankings. The assumption is: the less the distance, the more accurate are the rankings. Finally, we normalized the distances across all stocks to get stocks with the perfect prediction of top rankings with value of 0 and stocks where the distance is the maximum among all stocks with value of 1. For $bottom_{s,a,q} $ the analysis is the same.
 
-Mathematically, it looks the following:
-\begin{eqnarray}
-score_{q,s}&=&\sum_{1}^{a} top_{q,a,s} \nonumber \\
-dist_{s}&=&\sqrt{ \sum_{q=1}^{40}(score_{(\true{}),q,s}-score_{q,s})^{2}}\nonumber \\
-norm.dist_{s}&=&\frac{dist_{s}-\min{dist_{s}}}{\max{dist_{s}}-\min{dist_{s}}}
-\end{eqnarray}
-The variable $dist_{s}$ is the distance of sum of top rankings relative to \true{} for all stocks. %Figure (\ref{top-bottom}) shows these distances across 487 stocks. We see, indeed, that the most errors of the predicted methods were done at the bottom of the rankings. Notice, how \default{} method at 0.50 cut depicts the uniform distribution of top to bottom as it is built on averaging the ranks.
+%Mathematically, it looks the following:
+%\begin{eqnarray}
+%score_{q,s}&=&\sum_{1}^{a} top_{q,a,s} \nonumber \\
+%dist_{s}&=&\sqrt{ \sum_{q=1}^{40}(score_{(\true{}),q,s}-score_{q,s})^{2}}\nonumber \\
+%norm.dist_{s}&=&\frac{dist_{s}-\min{dist_{s}}}{\max{dist_{s}}-\min{dist_{s}}}
+%\end{eqnarray}
+%The variable $dist_{s}$ is the distance of sum of top rankings relative to \true{} for all stocks. %Figure (\ref{top-bottom}) shows these distances across 487 stocks. We see, indeed, that the most errors of the predicted methods were done at the bottom of the rankings. Notice, how \default{} method at 0.50 cut depicts the uniform distribution of top to bottom as it is built on averaging the ranks.
 
 
-Panel A of table (\ref{tab:top-bottom}) depicts the average per stock distance of analysts at the top and at the bottom  of predicted rankings to \true{} for the case of ``Top" 5\% of rankings. Observe, that even-though the \naive{} (\Sexpr{round(mean.dist['naive',1,1,1],5)}) has a very close distance to the \true{}, two of our methods have even smaller distance to the \true{}: \raw{} (\Sexpr{round(mean.dist['raw',1,1,1],5)}) and \diff{} (\Sexpr{round(mean.dist['1diff',1,1,1],5)}). This indicates that \raw{} and \diff{} are able to predict top analysts more accurately compared to all others. Panels B and C show the values of the distances for the cases of ``Top" 50\% and 99\% (i.e., full ranking). Observe, that these distances for all methods of prediction is quite close to the ``Bottom" column of the table. This confirms the fact that most errors in rankings were done at the bottom ranks. Hence, we show that top analysts, on average, do not change their ranks and stay at the same rank from last quarter. As our predictions of the top analysts is more accurate compared to \naive{}, we continue our research and implement the trading strategy outlined in section \ref{sec:trading}, to test if, indeed, top analysts are good at being followed.
+%Panel A of table (\ref{tab:top-bottom}) depicts the average per stock distance of analysts at the top and at the bottom  of predicted rankings to \true{} for the case of ``Top" 5\% of rankings. Observe, that even-though the \naive{} (\Sexpr{round(mean.dist['naive',1,1,1],5)}) has a very close distance to the \true{}, two of our methods have even smaller distance to the \true{}: \raw{} (\Sexpr{round(mean.dist['raw',1,1,1],5)}) and \diff{} (\Sexpr{round(mean.dist['1diff',1,1,1],5)}). This indicates that \raw{} and \diff{} are able to predict top analysts more accurately compared to all others. Panels B and C show the values of the distances for the cases of ``Top" 50\% and 99\% (i.e., full ranking). Observe, that these distances for all methods of prediction is quite close to the ``Bottom" column of the table. This confirms the fact that most errors in rankings were done at the bottom ranks. Hence, we show that top analysts, on average, do not change their ranks and stay at the same rank from last quarter. As our predictions of the top analysts is more accurate compared to \naive{}, we continue our research and implement the trading strategy outlined in section \ref{sec:trading}, to test if, indeed, top analysts are good at being followed.
 
 \subsection{Trading strategies}
-Despite that the ranking accuracy shows (table \ref{tab:accuracy}) it is hard to predict complete rankings, the ``top/bottom" analysis suggests that most of the errors in rankings were done at the bottom part. We apply a practical implementation of use of the rankings. For this purpose, we performed back-test trading implementing the Black-Litterman strategy outlined in section (\ref{sec:trading}). The results are presented in table (\ref{tab:strategy}).
+%Despite that the ranking accuracy shows (table \ref{tab:accuracy}) it is hard to predict complete rankings, the ``top/bottom" analysis suggests that most of the errors in rankings were done at the bottom part.
 
-Panel A reports the performance of \market{} (passive strategy). This strategy showed annualized cumulative return of \Sexpr{results.pt[8,1,1]} and annualized Sharpe ratio of \Sexpr{round(results.pt[8,3,1],3)}. The average number of stocks used per quarter is \Sexpr{round(results.pt[8,4,1])} and the turnover ratio of strategy is \Sexpr{round(results.pt[8,5,1],3)} which demonstrates the ins/outs of the S\&P 500 constituents list.
+We apply a practical implementation of use of the rankings. For this purpose, we performed back-test trading implementing the Black-Litterman strategy outlined in section (\ref{sec:trading}). The results are presented in table (\ref{tab:strategy}).
 
-Panel B of the table demonstrates the results of trading with rankings based on price target. Observe that consistent with our assumption, the \true{} resulted in the maximum possible annual cumulative return and the Sharpe ratio ( \Sexpr{results.pt['true',1,1]} and  \Sexpr{results.pt['true',3,1]}). This implies that in the settings where analysts' expected returns and rankings are based on price targets, an investor can gain a maximum results from trading strategy. Given the hypothetical assumption of \true{}, it is not feasible to implement. The next best strategy is \diff{} which is based on our algorithm of predicting the rankings. This strategy resulted in annual cumulative return of \Sexpr{results.pt['X1diff',1,1]} and the Sharpe ratio of \Sexpr{results.pt['X1diff',3,1]}. In addition, the average per quarter turnover ratio of this strategy of \Sexpr{results.pt['X1diff',5,1]} implies relative low trading costs.
+Panel A reports the performance of \market{} (passive strategy). This strategy showed annualized cumulative return of \Sexpr{bl.results[8,3,1]} and annualized Sharpe ratio of \Sexpr{round(bl.results[8,3,3],3)}. The average number of stocks used per quarter is \Sexpr{round(bl.results[8,3,4])} and the turnover ratio of strategy is \Sexpr{round(bl.results[8,3,5],3)} which demonstrates the ins/outs of the S\&P 500 constituents list.
+
+Panel B of the table demonstrates the results of trading with rankings based on price target. Observe that consistent with our assumption, the \true{} resulted in the maximum possible annual cumulative return and the Sharpe ratio ( \Sexpr{bl.results['true',3,1]} and  \Sexpr{bl.results['true',3,3]} respectively). This implies that in the settings where analysts' expected returns and rankings are based on price targets, an investor can gain a maximum results from trading strategy. Given the hypothetical assumption of \true{}, it is not feasible to implement. The next best strategy is
+<<max.strat,echo=FALSE,results='asis'>>=
+cat(paste0('\\',gsub('[[:punct:]]','',names(which.max(bl.results[2:8,2,1]))),'{}'))
+@
+which is based on our algorithm of predicting the rankings. This strategy resulted in annual cumulative return of \Sexpr{max(bl.results[2:8,2,1])} and the Sharpe ratio of \Sexpr{max(bl.results[2:8,2,3])}. In addition, the average per quarter turnover ratio of this strategy of \Sexpr{max(bl.results[2:8,2,5])} implies relative low trading costs.
 
 Figure \ref{fig:bl-results} plots the graphical representation of the cumulative returns for all methods of trading strategy. We see that the \true{} strategy is always on top of all the others. We observe that the best outcome of the strategy achieved for the method of prediction of rankings with first difference of the independent variables.
 
@@ -496,23 +537,25 @@ and sigma:
 \label{sigma}
 \sigma_{w}^2(x_{t,m}|y)=\frac{\sum_{i=1}^n w_{t} \rho(y,y_t) [x_{t,m}-\mu(x_{t,m}|y)]^2}{\sum_{i=1}^n \rho(y,y_t)}
 \end{equation}
+
 \singlespace
-\bibliographystyle{apalike}
-\bibliography{/Users/aiguzhinov/Documents/Dropbox/Documents/Bibliography/rank}
+\bibliographystyle{ecta}
+\bibliography{rank}
+
 \doublespace
 
 \newpage
 \section{Tables and Figures}
-
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[scale=0.25]{Black-litterman}
-\end{center}
-\caption{Trading strategy schematics}
-\label{fig:bl}
-\ The figure plots the schematics of implementation of BL trading. We gather all necessary inputs at the end of quarter $q-1$. At the beginning of quarter $q$ we apply the BL model and form the portfolio of stocks based on the optimal weights. At the end of quarter $q$, we evaluate the portfolio.
-\end{figure}
-
+%
+% \begin{figure}[ht]
+% \begin{center}
+% \includegraphics[scale=0.25]{Black-litterman}
+% \end{center}
+% \caption{Trading strategy schematics}
+% \label{fig:bl}
+% \ The figure plots the schematics of implementation of BL trading. We gather all necessary inputs at the end of quarter $q-1$. At the beginning of quarter $q$ we apply the BL model and form the portfolio of stocks based on the optimal weights. At the end of quarter $q$, we evaluate the portfolio.
+% \end{figure}
+%
 
 % \begin{table}[htb]
 %   \caption{Descriptive statistics of variables}
@@ -554,46 +597,44 @@ and sigma:
 %     \bottomrule
 %   \end{tabularx}
 % \end{table}
-
+%'
 \begin{table}
 \caption{Descriptive statistics of independent variables}
 \label{tab:ind-var}
 \ The table presents the summary of the descriptive statistics used in the ranking prediction experiment. Each panel focuses on one specific domain. Panel A shows the broker specific variables which capture the uncertainty and information asymmetry among the analysts. Notice the huge value of the standard deviation for the ``Uncertainty'' proxy. Panel B summarizes variables that affect the analysts' opinions taken from the stocks. Finally, panel C presents the variables on the macro economic level.
-\begin{tabularx}{\linewidth}{r*{4}{Y}}
-     \toprule
+\begin{tabularx}{\linewidth}{r*{5}{Y}}
+\toprule
 <<tab.columns,echo=FALSE,results='asis'>>=
-cat(paste('Variable', '&',paste(data.to.display, collapse = "&"),'\\\\'))
+cat(paste0('Variable', '&',paste(data.to.display, collapse = "&"),'\\\\'))
 @
-    \midrule
-     \multicolumn{4}{l}{\textbf{Panel A: Broker specific variables}} \\
-<<tab.ind.var,echo=FALSE,results='asis'>>=
+\midrule
+\multicolumn{4}{l}{\textbf{Panel A: Broker specific variables}} \\
+<<brok.ind.var,echo=FALSE,results='asis'>>=
 cat('\\midrule','\n')
-results.final <- stat.all.vvs[6:8,data.to.display]
-cat(paste(rownames(results.final),'&',apply(results.final, 1, function(x) paste(prettyNum(round(x,2),big.mark=' '), collapse = "&")),collapse="\\\\\n"),'\\\\')
+options(xtable.comment = FALSE)
+
+print(xtable(stat.all.vvs[1:3,data.to.display],display=c('s','d','f','f','f')),only.contents=T,include.colnames=F,include.rownames=T,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."))
 @
 \end{tabularx}
 
-\begin{tabularx}{\linewidth}{r*{4}{Y}}
+\begin{tabularx}{\linewidth}{r*{5}{Y}}
      \midrule
      \multicolumn{4}{l}{\textbf{Panel B: Stock specific variables}} \\
      \midrule
-<<tab.ind.var,echo=FALSE,results='asis'>>=
-results.final <- stat.all.vvs[1:5,data.to.display]
-cat(paste(rownames(results.final),'&',apply(results.final, 1, function(x) paste(prettyNum(round(x,2),big.mark=' '), collapse = "&")),collapse="\\\\\n"),'\\\\')
+<<stock.ind.var,echo=FALSE,results='asis'>>=
+print(xtable(stat.all.vvs[4:9,data.to.display],display=c('s','d','f','f','f')),only.contents=T,include.colnames=FALSE,include.rownames=T,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."))
 @
 \end{tabularx}
 
-\begin{tabularx}{\linewidth}{r*{4}{Y}}
+\begin{tabularx}{\linewidth}{r*{5}{Y}}
      \midrule
      \multicolumn{4}{l}{\textbf{Panel C: Market specific variables}} \\
      \midrule
-<<tab.ind.var,echo=FALSE,results='asis'>>=
-results.final <- stat.all.vvs[9:13,data.to.display]
-cat(paste(rownames(results.final),'&',apply(results.final, 1, function(x) paste(prettyNum(round(x,2),big.mark=' '), collapse = "&")),collapse="\\\\\n"),'\\\\')
+<<glob.ind.var,echo=FALSE,results='asis'>>=
+print(xtable(stat.all.vvs[10:13,data.to.display],display=c('s','d','f','f','f')),only.contents=T,include.colnames=FALSE,include.rownames=T,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."))
 @
 \bottomrule
 \end{tabularx}
-
 \end{table}
 
 \begin{table}
@@ -606,9 +647,9 @@ Period & $x_1$ & $x_2$ & $x_3$ & $x_4$ &\multicolumn{3}{c}{Ranks}\\
 \cline{6-8}
 &&&&&Alex&Brown&Credit\\
 \midrule
-<<table.rank,echo=FALSE,results=tex>>==
-data <- read.csv("~/Documents/Dropbox/workspace/Naive.Bayes.separate.functions/cont.data.csv", header = T, sep=",")
-cat(paste(1:7,'&',apply(format(data[1:7,2:8],digits=2), 1, function(x) paste(x,collapse="&",sep='')),collapse="\\\\\n"),'\\\\')
+<<table.rank,echo=FALSE,results='asis'>>=
+data <- read.csv("~/Dropbox/workspace/Naive.Bayes.separate.functions/cont.data.csv", header = T, sep=",")
+print(xtable(data[1:7,2:8],display=c('f','f','f','f','f','d','d','d')),only.contents=T,include.colnames=FALSE,include.rownames=T,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."))
 @
 \bottomrule
  \end{tabular}
@@ -616,105 +657,101 @@ cat(paste(1:7,'&',apply(format(data[1:7,2:8],digits=2), 1, function(x) paste(x,c
 \label{tab:ranking-example}
 \end{table}
 
-<<plot-tr-pmafe,echo=FALSE,include=FALSE,results='hide',fig.width=10,fig.height=8>>=
-plot(mean.pmafe,mean.rel.rank[,,'true'],ylab='Relative true rankings',xlab='PT PMAFE',main='PT',xlim=c(0,6))
-box('figure',lty='solid')
-@
+%' <<plot-tr-pmafe,echo=FALSE,include=FALSE,results='hide',fig.width=10,fig.height=8>>=
+%' plot(mean.pmafe,mean.rel.rank[,,'true'],ylab='Relative true rankings',xlab='PT PMAFE',main='PT',xlim=c(0,6))
+%' box('figure',lty='solid')
+%' @
 
-\begin{figure}[ht]
-\begin{center}
-\includegraphics{BL-all-methods-plot-tr-pmafe}
-\end{center}
-\caption{Actual relative rankings and forecast errors}
-\label{fig:tr-pmafe}
-\ The figure plots the errors as a function of relative \true{} ranking. Observe the positive slope of the relative ranking as the errors increase.
-\end{figure}
-
-\begin{table}[ht]
-\caption{Descriptive statistics of ranking accuracy}
-\label{tab:accuracy}
-\ Table \ref{tab:accuracy} depicts the average Spearman correlation (eq.\ref{eq:spearman}). We observe that \naive{} achieve the average correlation of \Sexpr{round(descr.pt.accuracy['naive','mean'],3)} (median=\Sexpr{round(descr.pt.accuracy['naive','median'],3)}). From the four different methods of label ranking the most successful is \rollsd{} with correlation of \Sexpr{round(descr.pt.accuracy['roll.sd','mean'],3)} (median=\Sexpr{round(descr.pt.accuracy['roll.sd','median'],3)}).
-\begin{center}
-\begin{tabular}{ccccc}
-\toprule
-<<pt-accuracy,echo=F,results='asis'>>=
-results.final <- descr.pt.accuracy[,data.to.display]
-rownames(results.final) <- c("$\\true{}$","$\\naive{}$","$\\default{}$","$\\raw{}$","$\\diff{}$","$\\random{}$","$\\rollsd{}$")
-cat(paste('Method', '&',paste(data.to.display, collapse = "&"),'\\\\'))
-cat('\\midrule','\n')
-cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' '),'&',apply(results.final[,c(2:ncol(results.final))], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
-@
-\bottomrule
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[ht]
-  \caption{Average distance of relative ranks: top/bottom }
-  \ The table depicts the average per stock distance of top and bottom analysts of predicted rankings to actual ranking. Even-though the \naive{} have a very close distance to the \true{} (\Sexpr{round(mean.dist['naive',1,1,1],5)}), two of our methods have even smaller distance to the \true{}: \raw{} (\Sexpr{round(mean.dist['raw',1,1,1],5)}) and \diff{} (\Sexpr{round(mean.dist['1diff',1,1,1],5)}). This indicates that \raw{} and \diff{} methods were able to forecast top analysts more accurately compared to all others. Panel B and C present the distance values of ``Top" at 50 \% and 99\% cut of relative rankings. We see, that the distance is quite close to the ``Bottom". This implies that errors of rankings were done at the bottom ranks.
-  \label{tab:top-bottom}
-  \begin{center}
-    \begin{tabularx}{\linewidth}{r*{2}{Y}}
-    \toprule
-<<pt-top-table,echo=F,results='asis'>>=
-results.final <- mean.dist[2:7,,1,1]
-rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
-cat('Methods','&','Top','&','Bottom', '\\\\','\n')
-cat('\\midrule','\n')
-cat('\\multicolumn{3}{l}{\\textbf{Panel A: top 5\\%}}', '\\\\','\n')
-cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
-@
-    \end{tabularx}
-    \begin{tabularx}{\linewidth}{r*{2}{Y}}
-    \toprule
-    \multicolumn{3}{l}{\textbf{Panel B: top 50\%}} \\
-    \midrule
-<<pt-top-table,echo=F,results='asis'>>=
-results.final <- mean.dist[2:7,,1,2]
-rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
-cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
-@
-    \end{tabularx}
-    \begin{tabularx}{\linewidth}{r*{2}{Y}}
-    \toprule
-    \multicolumn{3}{l}{\textbf{Panel C: top 99\%}} \\
-    \midrule
-<<pt-top-table,echo=F,results='asis'>>=
-results.final <- mean.dist[2:7,,1,3]
-rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
-cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
-@
-    \bottomrule
-    \end{tabularx}
-    \end{center}
-\end{table}
-
-
-<<bl-results-fig,echo=FALSE, include=FALSE,results='hide',fig.width=10,fig.height=8>>=
-#m <- matrix(c(1,0,2),3,1,byrow=T)
-#layout(m, heights = c(2,0.05,2), widths = c(2,0.05,2))
-chart.CumReturns(sel.data.pt,wealth.index=T,legend.loc='topleft',main='Cumulative portfolio wealth',ylim=c(0,3))#,colorset=grey(0:ncol(sel.data)/ncol(sel.data)),type='b',pch=1:ncol(sel.data))
-box('figure',lty='solid')
-
-#chart.RollingPerformance(sel.data.pt,width=4,FUN='Return.annualized',main='PT: rolling performance with 1 year reinvestment')
-#box('figure',lty='solid')
-@
+% \begin{figure}[ht]
+% \begin{center}
+% \includegraphics{BL-all-methods-plot-tr-pmafe}
+% \end{center}
+% \caption{Actual relative rankings and forecast errors}
+% \label{fig:tr-pmafe}
+% \ The figure plots the errors as a function of relative \true{} ranking. Observe the positive slope of the relative ranking as the errors increase.
+% \end{figure}
+%'
+%' \begin{table}[ht]
+%' \caption{Descriptive statistics of ranking accuracy}
+%' \label{tab:accuracy}
+%' \ Table \ref{tab:accuracy} depicts the average Spearman correlation (eq.\ref{eq:spearman}). We observe that \naive{} achieve the average correlation of \Sexpr{round(descr.pt.accuracy['naive','mean'],3)} (median=\Sexpr{round(descr.pt.accuracy['naive','median'],3)}). From the four different methods of label ranking the most successful is \rollsd{} with correlation of \Sexpr{round(descr.pt.accuracy['roll.sd','mean'],3)} (median=\Sexpr{round(descr.pt.accuracy['roll.sd','median'],3)}).
+%' \begin{center}
+%' \begin{tabular}{ccccc}
+%' \toprule
+%' <<pt-accuracy,echo=F,results='asis'>>=
+%' results.final <- descr.pt.accuracy[,data.to.display]
+%' rownames(results.final) <- c("$\\true{}$","$\\naive{}$","$\\default{}$","$\\raw{}$","$\\diff{}$","$\\random{}$","$\\rollsd{}$")
+%' cat(paste('Method', '&',paste(data.to.display, collapse = "&"),'\\\\'))
+%' cat('\\midrule','\n')
+%' cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' '),'&',apply(results.final[,c(2:ncol(results.final))], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
+%' @
+%' \bottomrule
+%' \end{tabular}
+%' \end{center}
+%' \end{table}
+%'
+%' \begin{table}[ht]
+%'   \caption{Average distance of relative ranks: top/bottom }
+%'   \ The table depicts the average per stock distance of top and bottom analysts of predicted rankings to actual ranking. Even-though the \naive{} have a very close distance to the \true{} (\Sexpr{round(mean.dist['naive',1,1,1],5)}), two of our methods have even smaller distance to the \true{}: \raw{} (\Sexpr{round(mean.dist['raw',1,1,1],5)}) and \diff{} (\Sexpr{round(mean.dist['1diff',1,1,1],5)}). This indicates that \raw{} and \diff{} methods were able to forecast top analysts more accurately compared to all others. Panel B and C present the distance values of ``Top" at 50 \% and 99\% cut of relative rankings. We see, that the distance is quite close to the ``Bottom". This implies that errors of rankings were done at the bottom ranks.
+%'   \label{tab:top-bottom}
+%'   \begin{center}
+%'     \begin{tabularx}{\linewidth}{r*{2}{Y}}
+%'     \toprule
+%' <<pt-top-table,echo=F,results='asis'>>=
+%' results.final <- mean.dist[2:7,,1,1]
+%' rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
+%' cat('Methods','&','Top','&','Bottom', '\\\\','\n')
+%' cat('\\midrule','\n')
+%' cat('\\multicolumn{3}{l}{\\textbf{Panel A: top 5\\%}}', '\\\\','\n')
+%' cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
+%' @
+%'     \end{tabularx}
+%'     \begin{tabularx}{\linewidth}{r*{2}{Y}}
+%'     \toprule
+%'     \multicolumn{3}{l}{\textbf{Panel B: top 50\%}} \\
+%'     \midrule
+%' <<pt-top-table,echo=F,results='asis'>>=
+%' results.final <- mean.dist[2:7,,1,2]
+%' rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
+%' cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
+%' @
+%'     \end{tabularx}
+%'     \begin{tabularx}{\linewidth}{r*{2}{Y}}
+%'     \toprule
+%'     \multicolumn{3}{l}{\textbf{Panel C: top 99\%}} \\
+%'     \midrule
+%' <<pt-top-table,echo=F,results='asis'>>=
+%' results.final <- mean.dist[2:7,,1,3]
+%' rownames(results.final) <- c("\\naive{}","\\default{}","\\raw{}","\\diff{}","\\random{}","\\rollsd{}")
+%' cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' ',digits=3),'&',apply(results.final[,c(2:ncol(results.final)),drop=F], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
+%' @
+%'     \bottomrule
+%'     \end{tabularx}
+%'     \end{center}
+%' \end{table}
+%'
+%'
+%' <<bl-results-fig,echo=FALSE, include=FALSE,results='hide',fig.width=10,fig.height=8>>=
+%' #m <- matrix(c(1,0,2),3,1,byrow=T)
+%' #layout(m, heights = c(2,0.05,2), widths = c(2,0.05,2))
+%' chart.CumReturns(sel.data.pt,wealth.index=T,legend.loc='topleft',main='Cumulative portfolio wealth',ylim=c(0,3))#,colorset=grey(0:ncol(sel.data)/ncol(sel.data)),type='b',pch=1:ncol(sel.data))
+%' box('figure',lty='solid')
+%'
+%' #chart.RollingPerformance(sel.data.pt,width=4,FUN='Return.annualized',main='PT: rolling performance with 1 year reinvestment')
+%' #box('figure',lty='solid')
+%' @
 
 \begin{table}[ht]
   \caption{Trading strategy performance}
   \label{tab:strategy}
-  \ The table presents the annualized cumulative statistics of the strategy performance based on EPS and PT rankings. \true{} is actual ranking of the analysts. \naive{} is the rankings from the last period. \default{} is the average rank of an analyst for up to the last period. Trading period is from 2000Q3 until 2009Q4. Panel A presents the results from the passive strategy with annualized cumulative return of \Sexpr{results.pt[8,1,1]*100 }\% and the Sharpe ratio of \Sexpr{round(results.pt[8,3,1],2) }. Panel B summarizes the results of the strategy with rankings based on price target. In this scenario, strategy with \true{} ranking resulted in the best possible results out all strategies. Strategy based on the first difference of independent variables produces the favorable results out of all feasible predicting methods.
+  \ The table presents the annualized cumulative statistics of the strategy performance based on EPS and PT rankings. \true{} is actual ranking of the analysts. \naive{} is the rankings from the last period. \default{} is the average rank of an analyst for up to the last period. Trading period is from  \Sexpr{gsub('[[:space:]]','',final.bl[,head(Quarters,1)])} until \Sexpr{gsub('[[:space:]]','',final.bl[,tail(Quarters,1)])}. Panel A presents the results from the passive strategy. Panel B summarizes the results of the strategy with rankings based on price target.
   \begin{tabularx}{\linewidth}{r*{5}{Y}}
     \toprule
-    \multicolumn{5}{l}{\textbf{Panel A: Market}} \\
-    \midrule
 <<bl-market,echo=F,results='asis'>>=
-results <- results.pt[,,1]
-colnames(results) <- c("Annualized Return","Annualized Std Dev","Annualized Sharpe", "Average num. stock","Average turnover rate")
-results.final <- results[8,]
-cat(paste('&',paste(names(results.final), collapse = "&"),'\\\\'))
-cat(rep('&',length(results.final)),'\\\\')
-cat(paste('Market','&', paste(sprintf("%.3f",results.final), collapse = "&"),collapse="\\\\\n"),'\\\\')
+results.final <- bl.results[8,2,]
+cat(paste(c('Strategy','Annualized cum. return (in \\%)','Annualized Std. dev (in \\%)','Sharpe ratio' ,'Average num. stock','Average turnover rate'), collapse = "&"),'\\\\')
+#cat('\\multicolumn{5}{l}{\\textbf{Panel A: Market}} \n')
+print(xtable(t(data.table('\\textit{Market}'=results.final)),display=c('s','f','f','f','d','f'),digits=3,align=c('r',rep('c',length(results.final)))),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(0),command=c('\\multicolumn{5}{l}{\\textbf{Panel A}} \\\\ \n')),sanitize.text.function = function(x) x)
 @
   \end{tabularx}
 \begin{tabularx}{\linewidth}{r*{5}{Y}}
@@ -722,23 +759,25 @@ cat(paste('Market','&', paste(sprintf("%.3f",results.final), collapse = "&"),col
     \multicolumn{5}{l}{\textbf{Panel B: Price Target strategy}} \\
     \midrule
 <<bl-pt,echo=F,results='asis'>>=
-results.final <- results[1:7,]
-rownames(results.final) <- c("$\\true{}$","$\\naive{}$","$\\default{}$","$\\raw{}$","$\\diff{}$","$\\random{}$","$\\rollsd{}$")
-cat(paste(rownames(results.final),'&',format(results.final[,1],big.mark=' '),'&',apply(results.final[,c(2:ncol(results.final))], 1, function(x) paste(sprintf("%.3f",x), collapse = "&")),collapse="\\\\\n"),'\\\\')
+results.final <- bl.results[1:7,2,]
+
+
+rownames(results.final) <- paste0('\\',gsub('[[:punct:]]|[[:digit:]]','',c(baselines,methods)),'{}')
+print(xtable(results.final,display=c('s','f','f','f','d','f'),digits=3),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(nrow(bl.results[1:3,1,])),command=c('\\midrule \n')),sanitize.text.function = function(x) x)
 @
     \bottomrule
   \end{tabularx}
 \end{table}
 
-
-\begin{figure}[ht]
-\begin{center}
-\includegraphics{BL-all-methods-bl-results-fig}
-\end{center}
-\caption{Performance of BL model}
-\label{fig:bl-results}
-\ In this figure we show the quarterly performance of the cumulative portfolio wealth for all strategies. Observe that the \true{} out-runs all the others in each of the types of rankings. Plots on the right of the figure depict the performance of the strategies with larger holding period: instead of 1 quarter, it is 4 quarters). We observer that in the EPS case, the \true{} fail to stay on top of the strategies. We observe that in the PT case, at least for some quarters, \true{} was on top of all strategies.
-\end{figure}
+%
+% \begin{figure}[ht]
+% \begin{center}
+% \includegraphics{BL-all-methods-bl-results-fig}
+% \end{center}
+% \caption{Performance of BL model}
+% \label{fig:bl-results}
+% \ In this figure we show the quarterly performance of the cumulative portfolio wealth for all strategies. Observe that the \true{} out-runs all the others in each of the types of rankings. Plots on the right of the figure depict the performance of the strategies with larger holding period: instead of 1 quarter, it is 4 quarters). We observer that in the EPS case, the \true{} fail to stay on top of the strategies. We observe that in the PT case, at least for some quarters, \true{} was on top of all strategies.
+% \end{figure}
 
 
 

@@ -1,0 +1,184 @@
+\begin{thebibliography}{32}
+\newcommand{\enquote}[1]{``#1''}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[\protect\citeauthoryear{Ahmed, Nainar, and Zhou}{Ahmed
+  et~al.}{2005}]{ahmed2005}
+\textsc{Ahmed, A., S.~Nainar, and J.~Zhou} (2005): \enquote{Do Analysts'
+  Earnings Forecasts Fully Reflect the Information in Accruals?} \emph{Canadian
+  Journal of Administrative Sciences/Revue Canadienne des Sciences de
+  l'Administration}, 22, 329--342.
+
+\bibitem[\protect\citeauthoryear{Aiguzhinov, Serra, and Soares}{Aiguzhinov
+  et~al.}{2013}]{aiguzhinov2013a}
+\textsc{Aiguzhinov, A., A.~Serra, and C.~Soares} (2013): \enquote{Are rankings
+  of financial analysts useful for investors?} .
+
+\bibitem[\protect\citeauthoryear{Aiguzhinov, Soares, and Serra}{Aiguzhinov
+  et~al.}{2010}]{aiguzhinov2010}
+\textsc{Aiguzhinov, A., C.~Soares, and A.~Serra} (2010): \enquote{A
+  Similarity-Based Adaptation of Naive {B}ayes for Label Ranking: Application
+  to the Metalearning Problem of Algorithm Recommendation,} in \emph{Discovery
+  Science}, vol. 6332 of \emph{Lecture Notes in Computer Science}, 16--26.
+
+\bibitem[\protect\citeauthoryear{Barber, Lehavy, McNichols, and Trueman}{Barber
+  et~al.}{2001}]{barber2001}
+\textsc{Barber, B., R.~Lehavy, M.~McNichols, and B.~Trueman} (2001):
+  \enquote{Can investors Profit from the Prophets? {S}ecurity Analyst
+  Recommendations and Stock Returns,} \emph{The Journal of Finance}, 56,
+  531--563.
+
+\bibitem[\protect\citeauthoryear{Barron, Kim, Lim, and Stevens}{Barron
+  et~al.}{1998}]{barron1998}
+\textsc{Barron, O., O.~Kim, S.~Lim, and D.~Stevens} (1998): \enquote{Using
+  analysts' forecasts to measure properties of analysts' information
+  environment,} \emph{The Accounting Review}, 73, 421--433.
+
+\bibitem[\protect\citeauthoryear{Barron, Stanford, and Yu}{Barron
+  et~al.}{2009}]{barron2009}
+\textsc{Barron, O., M.~Stanford, and Y.~Yu} (2009): \enquote{Further Evidence
+  on the Relation between Analysts' Forecast Dispersion and Stock Returns,}
+  \emph{Contemporary Accounting Research}, 26, 329--357.
+
+\bibitem[\protect\citeauthoryear{Bhushan}{Bhushan}{1989}]{bhushan1989}
+\textsc{Bhushan, R.} (1989): \enquote{Firm characteristics and analyst
+  following,} \emph{Journal of Accounting and Economics}, 11, 255--274.
+
+\bibitem[\protect\citeauthoryear{Black and Litterman}{Black and
+  Litterman}{1992}]{black1992}
+\textsc{Black, F. and R.~Litterman} (1992): \enquote{Global portfolio
+  optimization,} \emph{Financial Analysts Journal}, 48, 28--43.
+
+\bibitem[\protect\citeauthoryear{Bouckaert}{Bouckaert}{2005}]{bouckaert2005}
+\textsc{Bouckaert, R.~R.} (2005): \enquote{Naive {B}ayes Classifiers That
+  Perform Well with Continuous Variables,} in \emph{AI 2004: Advances in
+  Artificial Intelligence}, vol. 3339 of \emph{Lecture Notes in Computer
+  Science}, 85--116.
+
+\bibitem[\protect\citeauthoryear{Brown and Mohammad}{Brown and
+  Mohammad}{2003}]{brown2003}
+\textsc{Brown, L. and E.~Mohammad} (2003): \enquote{The Predictive Value of
+  Analyst Characteristics,} \emph{Journal of Accounting, Auditing and Finance},
+  18.
+
+\bibitem[\protect\citeauthoryear{Clement}{Clement}{1999}]{clement1999}
+\textsc{Clement, M.} (1999): \enquote{Analyst forecast accuracy: Do ability,
+  resources, and portfolio complexity matter?} \emph{Journal of Accounting and
+  Economics}, 27, 285--303.
+
+\bibitem[\protect\citeauthoryear{Creamer and Stolfo}{Creamer and
+  Stolfo}{2009}]{creamer2009}
+\textsc{Creamer, G. and S.~Stolfo} (2009): \enquote{A link mining algorithm for
+  earnings forecast and trading,} \emph{Data Mining and Knowledge Discovery},
+  18, 419--445.
+
+\bibitem[\protect\citeauthoryear{Diether, Malloy, and Scherbina}{Diether
+  et~al.}{2002}]{diether2002}
+\textsc{Diether, K., C.~Malloy, and A.~Scherbina} (2002): \enquote{Differences
+  of opinion and the cross section of stock returns,} \emph{The Journal of
+  Finance}, 57, 2113--2141.
+
+\bibitem[\protect\citeauthoryear{Emery and Li}{Emery and Li}{2009}]{emery2009}
+\textsc{Emery, D. and X.~Li} (2009): \enquote{Are the {W}all {S}treet Analyst
+  Rankings Popularity Contests?} \emph{Journal of Financial and Quantitative
+  Analysis}, 44, 411.
+
+\bibitem[\protect\citeauthoryear{Fama}{Fama}{1970}]{fama1970ecm}
+\textsc{Fama, E.} (1970): \enquote{Efficient Capital Markets: A Review of
+  Empirical Work,} \emph{The Journal of Finance}, 25, 383--417.
+
+\bibitem[\protect\citeauthoryear{Grossman and Stiglitz}{Grossman and
+  Stiglitz}{1980}]{grossman1980iie}
+\textsc{Grossman, S. and J.~Stiglitz} (1980): \enquote{On the Impossibility of
+  Informationally Efficient Prices,} \emph{American Economic Review}, 70,
+  393--408.
+
+\bibitem[\protect\citeauthoryear{Henley, Carruth, and Dickerson}{Henley
+  et~al.}{2003}]{henley2003}
+\textsc{Henley, A., A.~Carruth, and A.~Dickerson} (2003):
+  \enquote{Industry-wide versus firm-specific uncertainty and investment:
+  British company panel data evidence,} \emph{Economics Letters}, 78, 87--92.
+
+\bibitem[\protect\citeauthoryear{Hilary and Hsu}{Hilary and
+  Hsu}{2013}]{hilary2013}
+\textsc{Hilary, G. and C.~Hsu} (2013): \enquote{Analyst forecast consistency,}
+  \emph{The Journal of Finance}, 68, 271--297.
+
+\bibitem[\protect\citeauthoryear{Hill and Stone}{Hill and
+  Stone}{1980}]{hill1980}
+\textsc{Hill, N. and B.~Stone} (1980): \enquote{Accounting betas, systematic
+  operating risk, and financial leverage: A risk-composition approach to the
+  determinants of systematic risk,} \emph{Journal of Financial and Quantitative
+  Analysis}, 15, 595--637.
+
+\bibitem[\protect\citeauthoryear{Hope and Kang}{Hope and Kang}{2005}]{hope2005}
+\textsc{Hope, O. and T.~Kang} (2005): \enquote{The association between
+  macroeconomic uncertainty and analysts' forecast accuracy,} \emph{Journal of
+  International Accounting Research}, 4, 23--38.
+
+\bibitem[\protect\citeauthoryear{Idzorek}{Idzorek}{2002}]{idzorek2002}
+\textsc{Idzorek, T.} (2002): \enquote{A step-by-step guide to the
+  {B}lack-{L}itterman model,} \emph{Forecasting Expected Returns in the
+  Financial Markets}, 17.
+
+\bibitem[\protect\citeauthoryear{Jegadeesh, Kim, Krische, and Lee}{Jegadeesh
+  et~al.}{2004}]{jegadeesh2004}
+\textsc{Jegadeesh, N., J.~Kim, S.~Krische, and C.~Lee} (2004):
+  \enquote{Analyzing the analysts: When do recommendations add value?}
+  \emph{The Journal of Finance}, 59, 1083--1124.
+
+\bibitem[\protect\citeauthoryear{Lev and Thiagarajan}{Lev and
+  Thiagarajan}{1993}]{lev1993}
+\textsc{Lev, B. and S.~Thiagarajan} (1993): \enquote{Fundamental information
+  analysis,} \emph{Journal of Accounting research}, 31, 190--215.
+
+\bibitem[\protect\citeauthoryear{Parkash, Dhaliwal, and Salatka}{Parkash
+  et~al.}{1995}]{parkash1995}
+\textsc{Parkash, M., D.~Dhaliwal, and W.~Salatka} (1995): \enquote{How certain
+  firm-specific characteristics affect the accuracy and dispersion of analysts'
+  forecasts:: A latent variables approach,} \emph{Journal of Business
+  Research}, 34, 161--169.
+
+\bibitem[\protect\citeauthoryear{Richardson}{Richardson}{2000}]{richardson2000}
+\textsc{Richardson, V.~J.} (2000): \enquote{Information Asymmetry and Earnings
+  Management: Some Evidence,} \emph{Review of Quantitative Finance and
+  Accounting}, 15, 325--347.
+
+\bibitem[\protect\citeauthoryear{Sheng and Thevenot}{Sheng and
+  Thevenot}{2012}]{sheng2012}
+\textsc{Sheng, X. and M.~Thevenot} (2012): \enquote{A new measure of earnings
+  forecast uncertainty,} \emph{Journal of Accounting and Economics}, 53,
+  21--33.
+
+\bibitem[\protect\citeauthoryear{Sousa and Serra}{Sousa and
+  Serra}{2008}]{sousa2008}
+\textsc{Sousa, S. and A.~Serra} (2008): \enquote{What drives idiosyncratic
+  volatility over time?} \emph{Portuguese Economic Journal}, 7, 155--181.
+
+\bibitem[\protect\citeauthoryear{Trueman and Titman}{Trueman and
+  Titman}{1988}]{trueman1988}
+\textsc{Trueman, B. and S.~Titman} (1988): \enquote{An explanation for
+  accounting income smoothing,} \emph{Journal of Accounting Research}, 26,
+  127--139.
+
+\bibitem[\protect\citeauthoryear{Vogt, Godden, and Bajorath}{Vogt
+  et~al.}{2007}]{vogt2007}
+\textsc{Vogt, M., J.~Godden, and J.~Bajorath} (2007): \enquote{Bayesian
+  interpretation of a distance function for navigating high-dimensional
+  descriptor spaces.} \emph{Journal of chemical information and modeling}, 47,
+  39--46.
+
+\bibitem[\protect\citeauthoryear{Womack}{Womack}{1996}]{womack1996}
+\textsc{Womack, K.} (1996): \enquote{Do Brokerage Analysts' Recommendations
+  Have Investment Value?} \emph{The Journal of Finance}, 51, 137--168.
+
+\bibitem[\protect\citeauthoryear{Zhang}{Zhang}{2006}]{zhang2006}
+\textsc{Zhang, X.} (2006): \enquote{Information uncertainty and stock returns,}
+  \emph{The Journal of Finance}, 61, 105--137.
+
+\bibitem[\protect\citeauthoryear{Zivot and Wang}{Zivot and
+  Wang}{2003}]{zivot2003}
+\textsc{Zivot, E. and J.~Wang} (2003): \emph{Modeling financial time series
+  with S-PLUS}, vol. 191, Springer Verlag.
+
+\end{thebibliography}
