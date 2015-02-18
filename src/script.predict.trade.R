@@ -3,7 +3,7 @@ setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
 
 library(ProjectTemplate)
 load.project()
-delta<-1L;tau=1/50;baselines <- c('true','naive','default');methods<-c('raw','1diff','random','roll.sd');confid.id <- c('cons','last','ma');percentile <- 0.05;rank.parameters <- c(n=100L,diff.lag=1L,sd.lag=8L,roll.p=15L)
+delta<-1L;tau=1/50;baselines <- c('true','naive','default');methods<-c('raw','diff','random','roll.sd');confid.id <- c('cons','last','ma');percentile <- 0.05;rank.parameters <- c(n=100L,diff.lag=1L,sd.lag=8L,roll.p=15L)
 ##rolling rankings: 20 qtrs - no winning; 16 qtrs - win roll.sd (last); 12
 require(labelRank)
 ### market data: ~ 113 sec (mcapply: ~ 52 sec)
@@ -32,3 +32,4 @@ ggplot(unique(melt(final.bl[,list(Views,Method,confAgg,ann.ret,ann.sd,ann.sr)],i
 
 setwd('~/Dropbox/workspace/Projects/Black-Litterman/doc/paper/')
 knit2pdf('chapter-4-knitr.Rnw',quiet=T)
+setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
