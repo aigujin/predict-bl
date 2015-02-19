@@ -1,4 +1,4 @@
-
+print(sel.vvs)
 core.dt <- q.data[,core.b:=.N>=12,by=list(Stock,Broker)][(core.b)][,true:=rank(score),by=list(q.id,Stock)][,core.s:=.N>=3,by=list(q.id,Stock)][(core.s)][,core.q:=length(unique(q.id))>=8,by=.(Stock)][(core.q)]
 
 broker.vvs <- acast(melt(unique(core.dt[,broker.vvs.f(PT,priceAdj),by=list(q.id,Stock)],by=c('q.id','Stock')),id.vars = c('q.id','Stock'),measure.vars = c('uncertainty','assym','dispersion')),q.id~Stock~variable)
@@ -13,6 +13,8 @@ pt.new <- acast(core.dt,q.id~Broker~Stock,value.var='true')
 stocks <- intersect(intersect(intersect(dimnames(pt.new)[[3]],dimnames(array.all.vvs)[[2]]),market.set[,Stock]),dimnames(broker.vvs)[[2]])
 stock.vvs <- vvs.combine(stocks,broker.vvs,array.all.vvs,t=dim(pt.new)[1])
 
+vvs.names <- dimnames(stock.vvs)[[3]]
+cache('vvs.names')
 #baseline.rankings <- baseline.rankings.f(pt.new[,,stocks],3)
 #dimnames(baseline.rankings)[[1]] <- dimnames(pt.new)[[1]][3:length(dimnames(pt.new)[[1]])]
 
@@ -31,7 +33,7 @@ stock.vvs <- vvs.combine(stocks,broker.vvs,array.all.vvs,t=dim(pt.new)[1])
 
 ###rolling funciions
 roll.baselines <- roll.baselines.f(pt.new[,,stocks],rank.parameters[[4]])
-system.time(pred.r <- roll.ranking.f(pred.id,stocks,stock.vvs[,,1:4],pt.new[,,stocks],rank.parameters))
+system.time(pred.r <- roll.ranking.f(pred.id,stocks,stock.vvs[,,sel.vvs],pt.new[,,stocks],rank.parameters))
 
 all.rankings <- abind(aperm(roll.baselines,c(4,1,2,3)),aperm(pred.r,c(2,1,4,3)),along=4)
 dimnames(all.rankings)[[4]] <- c(baselines,pred.id)

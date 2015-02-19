@@ -14,6 +14,7 @@ system.time(source('munge/state-variables.R'))
 ### Analysts ranking data: ~ 280 sec
 system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/03-analysts.process.R'))
 ### Predicting ~ 347 sec
+sel.vvs <- vvs.names[1:5]
 system.time(source('src/predicting.R'))
 
 pt.accu[,mean(value),by=.(variable)]
