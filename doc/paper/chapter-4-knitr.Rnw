@@ -98,7 +98,7 @@ ind.v <- setnames(data.table(reshape2::melt(stock.vvs[,bl.stocks,])),c('Quarter'
 stat.all.vvs <- acast(setnames(ind.v[,descriptive.f(value,basic=T),by=.(Var)],c('Var','Stat','value')),Var~Stat,value.var = 'value')
 
 data.to.display <- c('nbr.val','median', 'mean','std.dev')
-methods<-c('raw','1diff','random','roll.sd')
+methods<-c('raw','diff','random','roll.sd')
 baselines<-c('true','naive','default')
 
 for(a in 1:3){
@@ -106,7 +106,9 @@ set(final.bl,i=which(final.bl[[3L]]==baselines[a]),3L,value=strategies[a])
 }
 
 
-final.bl$Method <- factor(final.bl$Method,levels=unique(final.bl$Method)[c(8,4,3,6,1,5,7,2)])
+#final.bl$Method <- factor(final.bl$Method,levels=unique(final.bl$Method)[c(8,4,3,6,1,5,7,2)])
+final.bl$Method <- factor(final.bl$Method,levels=c(strategies,methods,'Market'))
+
 final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(2,1)])
 
 final.bl <- final.bl[,ann.ret:=ann.ret*100][,ann.st:=ann.sd*100]

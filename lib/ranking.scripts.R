@@ -155,14 +155,16 @@ roll.sd <- function(data, lag) {
 }
 state.vvs.f <- function(data, lag,lag.sd) {
   data[is.infinite(data)] <- NA
-  list('raw'=data,
-    '1diff'=c(NA,diff(data, lag = lag)),
-    'roll.sd'=rollapplyr(data, lag.sd, sd, na.rm = T,fill=NA,partial=T),
-    'random'=if(length(data[!is.na(data)])<=8){as.numeric(rep(NA,length(data)))} else {
+  list(data,
+       c(NA,diff(data, lag = lag)),
+       rollapplyr(data, lag.sd, sd, na.rm = T,fill=NA,partial=T),
+       if(length(data[!is.na(data)])<=8){as.numeric(rep(NA,length(data)))} else {
       #decompose(ts(data,frequency=4))$random
       equal.length.f(data,coredata(stl(ts(data,frequency=4),s.window='periodic',na.action=na.approx)$time.series[,3]))
     }
   )
+  #names(data.list) <- methods
+  #data.list
 }
 
 
@@ -188,7 +190,7 @@ predict.ranking.script.f <- function(methods, stock.names, stock,  tr, r.paramet
 
   abind(mclapply(stock.names, function(s) {
 
-          mod.vvs <- acast(melt(setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,state.vvs.f(value,diff.lag,sd.lag),by=vvs][,q.num:=1:.N,by=vvs],id.vars=c('vvs','q.num')),q.num~vvs~variable)
+          mod.vvs <- acast(melt(setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,eval(methods):=state.vvs.f(value,diff.lag,sd.lag),by=vvs],id.vars=c('vvs','q.id'),measure.vars=methods),q.id~vvs~variable)
 
           abind(lapply(methods , function(meth) {
 
@@ -204,11 +206,11 @@ roll.ranking.f <- function(methods, stock.names, stock,  tr, r.parameters) {
         diff.lag = as.numeric(r.parameters[2])
         sd.lag = as.numeric(r.parameters[3])
         x=as.numeric(r.parameters[4])
-        
+
         abind(mclapply(stock.names, function(s) {
-                
-                mod.vvs <- acast(melt(setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,state.vvs.f(value,diff.lag,sd.lag),by=vvs][,q.num:=1:.N,by=vvs],id.vars=c('vvs','q.num')),q.num~vvs~variable)
-                
+
+          mod.vvs <- acast(melt(setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,eval(methods):=state.vvs.f(value,diff.lag,sd.lag),by=vvs],id.vars=c('vvs','q.id'),measure.vars=methods),q.id~vvs~variable)
+
                 abind(lapply(methods , function(meth) {
                         roll.analyst.prediction.f(tr[, , s], mod.vvs[,,meth], n,x)
                 }), along = 3)
@@ -258,9 +260,9 @@ roll.analyst.prediction.f <- function(rank,features,n,x){
         windows <- embed(1:nrow(rank),windowSize)
         pred.t <- windows[,1]
         train.t <- windows[,2:windowSize]
-        
+
         ### needs to calculate naive and default for each of the windows
-        
+
         sapply(1:nrow(train.t),function(t){
                 train <- rev(train.t[t,])
                 weights <- n^((1:length(train))/length(train) - 1)
