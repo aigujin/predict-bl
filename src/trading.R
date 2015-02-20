@@ -18,7 +18,7 @@ pt.list.rank <- acast(pt.ret,q.id~Stock~Method,value.var='V1')
 
 require(scales)
 
-res.accu <- melt(setkey(melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=NA_real_,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons'),q.id,Stock,variable)[setkey(pt.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],q.id,Stock,variable)],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
+res.accu <- melt(pt.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
 
 set(res.accu,i=which(is.infinite(res.accu[[5L]])),5L,value=9e+15 )
 
@@ -34,7 +34,7 @@ load('~/Dropbox/workspace/Projects/EPS/cache/eps.accu.RData')
 eps.ret <-exp.ret[ranked.eps.dt][,rank.exp.ret.f(rank,exp.ret),by=.(q.id,Stock,Method)][V1!=0,]
 eps.list.rank <- acast(eps.ret,q.id~Stock~Method,value.var='V1')
 
-eps.res.accu <- melt(setkey(melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=NA_real_,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons'),q.id,Stock,variable)[setkey(eps.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],q.id,Stock,variable)],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
+eps.res.accu <- melt(eps.accu[,':='(last=omega.f(value),ma={tmp <- grow.window.f(value,4,mean,na.rm=T);omega.f(tmp)}),by=Stock],id.vars=c('q.id','Stock','variable'),measure.vars=confid.id,variable.name='conf')[variable=='true',value:=0]
 
 set(eps.res.accu,i=which(is.infinite(res.accu[[5L]])),5L,value=9e+15 )
 
@@ -44,31 +44,30 @@ eps.conf.coef <- acast(eps.res.accu,q.id~Stock~variable~conf,value.var='value')
 eps.stocks <- intersect(dimnames(eps.list.rank)[[2]],dimnames(eps.conf.coef)[[2]])
 
 ### CONS case (no predicted rankings)
-meanTper <- na.omit(melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,Stock),.SDcols=c('q.id','Broker','Stock','b.view')][,.(q.id,Broker,Stock,b.view)][,true:=truncate.f(b.view,percentile)][,true:=median(true,na.rm=T),by=.(q.id,Stock)][,naive:=c(NA,head(true,-1)),by=.(Stock)][,default:=grow.window.f(true,seq_len(length(true)),mean,na.rm=T),by=.(Stock)][,eval(pred.id):=true,by=.(Stock)],id.vars = c('q.id','Stock'),measure.vars = c(baselines,pred.id),value.name = 'exp.ret',variable.name = 'Method'))
+meanTper <- melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,Stock),.SDcols=c('q.id','Broker','Stock','b.view')][,.(q.id,Broker,Stock,b.view)][,true:=truncate.f(b.view,percentile)][,true:=median(true,na.rm=T),by=.(q.id,Stock)][,naive:=c(NA,head(true,-1)),by=.(Stock)][,default:=grow.window.f(true,seq_len(length(true)),mean,na.rm=T),by=.(Stock)][,eval(pred.id):=NA_real_,by=.(Stock)],id.vars = c('q.id','Stock'),measure.vars = c(baselines,pred.id),value.name = 'exp.ret',variable.name = 'Method')
 
 cons.list.rank <- acast(unique(meanTper,by=c('q.id','Stock','Method')),q.id~Stock~Method,value.var='exp.ret')[dimnames(pt.list.rank)[[1]],pt.stocks,]
 
-conf.dt <- melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=NA_real_,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons')[,conf:='cons']
+conf.dt <- melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=NA_real_,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons')
 
 
-cons.conf.coef <- acast(conf.dt,q.id~Stock~variable~conf,value.var='cons')[dimnames(conf.coef)[[1]],pt.stocks,drop=F,,]
+cons.conf.coef <- acast(conf.dt,q.id~Stock~variable,value.var='cons')[dimnames(conf.coef)[[1]],pt.stocks,drop=F,]
 
 
 
 bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))
 
-pt.opt.w<- rbindlist(lapply(confid.id[2:3], function(i){
+pt.opt.w<- rbindlist(lapply(confid.id, function(i){
         opt.w.f(pt.list.rank,conf.coef[,pt.stocks,,i],tau)[,confAgg:=i]}))[,Views:='TP']
 
-eps.opt.w<- rbindlist(lapply(confid.id[2:3], function(i){
+eps.opt.w<- rbindlist(lapply(confid.id, function(i){
   opt.w.f(eps.list.rank,conf.coef[,eps.stocks,,i],tau)[,confAgg:=i]}))[,Views:='EPS']
 
-cons.opt.w<- rbindlist(lapply(confid.id[1], function(i){
-  opt.w.f(cons.list.rank,cons.conf.coef[,,,i],tau)}))[,Views:='CONS']
+cons.opt.w<- opt.w.f(cons.list.rank,cons.conf.coef,tau)[,Views:='CONS']
 
 
-opt.w.tmpt <- rbind(pt.opt.w,eps.opt.w)
+opt.w.tmp <- rbind(pt.opt.w,eps.opt.w)
 
 opt.w <- rbind(opt.w.tmp,opt.w.tmp[,as.list(cons.opt.w),by=confAgg],use.names=T)
 
