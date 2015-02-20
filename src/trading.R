@@ -28,7 +28,6 @@ pt.stocks <- intersect(dimnames(pt.list.rank)[[2]],dimnames(conf.coef)[[2]])
 ### EPS case
 load('~/Dropbox/workspace/Projects/EPS/cache/ranked.eps.dt.RData')
 load('~/Dropbox/workspace/Projects/EPS/cache/eps.accu.RData')
-load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
 
 eps.ret <-exp.ret[ranked.eps.dt][,rank.exp.ret.f(rank,exp.ret),by=.(q.id,Stock,Method)][V1!=0,]
 eps.list.rank <- acast(eps.ret,q.id~Stock~Method,value.var='V1')
