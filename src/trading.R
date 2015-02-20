@@ -25,6 +25,10 @@ conf.coef <- acast(res.accu,q.id~Stock~variable~conf,value.var='value')
 
 pt.stocks <- intersect(dimnames(pt.list.rank)[[2]],dimnames(conf.coef)[[2]])
 
+### EPS case
+load('~/Dropbox/workspace/Projects/EPS/cache/ranked.eps.dt.RData')
+load('~/Dropbox/workspace/Projects/EPS/cache/eps.accu.RData')
+load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
 
 bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))
