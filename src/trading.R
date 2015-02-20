@@ -45,14 +45,18 @@ eps.stocks <- intersect(dimnames(eps.list.rank)[[2]],dimnames(eps.conf.coef)[[2]
 bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))
 
-opt.w<- rbindlist(lapply(confid.id, function(i){
+pt.opt.w<- rbindlist(lapply(confid.id, function(i){
         opt.w.f(pt.list.rank,conf.coef[,pt.stocks,,i],tau)[,confAgg:=i]}))[,Views:='TP']
 
+eps.opt.w<- rbindlist(lapply(confid.id, function(i){
+  opt.w.f(eps.list.rank,conf.coef[,eps.stocks,,i],tau)[,confAgg:=i]}))[,Views:='EPS']
+
+opt.w <- rbind(pt.opt.w,eps.opt.w)
 
 final.bl <- setkey(unique(pred.bl.results.f(opt.w),by=c('Method','q.id','Views','confAgg')),Method)
 cache('final.bl')
 #final.bl$Method <- factor(final.bl$Method,levels=unique(final.bl$Method)[c(8,4,3,6,1,5,7,2)])
 final.bl$Method <- factor(final.bl$Method,levels=c(baselines,pred.id,'Market'))
-final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(2,1)])
+final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(3,2,1)])
 colourCount = length(unique(final.bl$Method))
 getPalette = colorRampPalette(RColorBrewer::brewer.pal(colourCount, "Set1"))
