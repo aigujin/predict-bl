@@ -57,6 +57,6 @@ final.bl <- setkey(unique(pred.bl.results.f(opt.w),by=c('Method','q.id','Views',
 cache('final.bl')
 #final.bl$Method <- factor(final.bl$Method,levels=unique(final.bl$Method)[c(8,4,3,6,1,5,7,2)])
 final.bl$Method <- factor(final.bl$Method,levels=c(baselines,pred.id,'Market'))
-final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(3,2,1)])
+final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(2,1)])
 colourCount = length(unique(final.bl$Method))
 getPalette = colorRampPalette(RColorBrewer::brewer.pal(colourCount, "Set1"))
