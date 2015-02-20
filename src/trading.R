@@ -7,6 +7,8 @@ quarters <- setnames(data.table(unique(ranked.pt.dt[,q.id])),'q.id')[,q.id:=as.y
 
 #core.dt <- na.omit(setkey(na.omit(q.data),q.id)[setkey(quarters,q.id)])[,core.b:=.N>=12,by=list(Stock,Broker)][(core.b)][,true:=rank(score),by=list(q.id,Stock)][,core.s:=.N>=3,by=list(q.id,Stock)][(core.s)][,core.q:=length(unique(q.id))>=8,by=.(Stock)][(core.q)]
 
+
+
 exp.ret <- setkey(melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,Stock),.SDcols=c('q.id','Broker','Stock','b.view')][,.(q.id,Broker,Stock,b.view)][,true:=truncate.f(b.view,percentile)][,naive:=c(NA,head(true,-1)),by=.(Broker,Stock)][,default:=grow.window.f(true,seq_len(length(true)),mean,na.rm=T),by=.(Broker,Stock)][,eval(pred.id):=true,by=.(Broker,Stock)],id.vars = c('q.id','Stock','Broker'),measure.vars = c(baselines,pred.id),value.name = 'exp.ret',variable.name = 'Method'),q.id,Stock,Broker,Method)
 
 pt.ret <-exp.ret[ranked.pt.dt][,rank.exp.ret.f(rank,exp.ret),by=.(q.id,Stock,Method)][V1!=0,]
@@ -40,6 +42,10 @@ set(eps.res.accu,i=which(is.infinite(res.accu[[5L]])),5L,value=9e+15 )
 eps.conf.coef <- acast(eps.res.accu,q.id~Stock~variable~conf,value.var='value')
 
 eps.stocks <- intersect(dimnames(eps.list.rank)[[2]],dimnames(eps.conf.coef)[[2]])
+
+### CONS case (no predicted rankings)
+
+
 
 bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))

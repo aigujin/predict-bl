@@ -608,7 +608,7 @@ and sigma:
 %   \end{tabularx}
 % \end{table}
 %'
-\begin{table}
+\begin{table}[hp]
 \caption{Descriptive statistics of independent variables}
 \label{tab:ind-var}
 \ The table presents the summary of the descriptive statistics used in the ranking prediction experiment. Each panel focuses on one specific domain. Panel A shows the broker specific variables which capture the uncertainty and information asymmetry among the analysts. Notice the huge value of the standard deviation for the ``Uncertainty'' proxy. Panel B summarizes variables that affect the analysts' opinions taken from the stocks. Finally, panel C presents the variables on the macro economic level.
@@ -647,7 +647,7 @@ print(xtable(stat.all.vvs[10:13,data.to.display],display=c('s','d','f','f','f'))
 \end{tabularx}
 \end{table}
 
-\begin{table}
+\begin{table}[hp]
 \caption{Example of label ranking}
 \ The table shows the example of label ranking problem. In this example, we have three brokers and values of independent variables $x_1 \ldots x_4$. Our goal is to predict the rankings for the period $t+1$, given the values of independent variables and rankings known up to period $t$. For example, at  $t=3$ \true{} is $\{1,2,3\}$, \naive{} is $\{2,3,1\}$, and \default{} is $\{A=(1+2)/2,B=(2+3)/2,C=(3+1)/2\} \Rightarrow \{1.5,2.5,2.0\} \Rightarrow \{1,3,2\}$.
 \begin{center}
@@ -751,7 +751,7 @@ print(xtable(data[1:7,2:8],display=c('f','f','f','f','f','d','d','d')),only.cont
 %' #box('figure',lty='solid')
 %' @
 
-\begin{table}[ht]
+\begin{table}[hp]
   \caption{Trading strategy performance}
   \label{tab:strategy}
   \ The table presents the annualized cumulative statistics of the strategy performance based on EPS and PT rankings. \true{} is actual ranking of the analysts. \naive{} is the rankings from the last period. \default{} is the average rank of an analyst for up to the last period. Trading period is from  \Sexpr{gsub('[[:space:]]','',final.bl[,head(Quarters,1)])} until \Sexpr{gsub('[[:space:]]','',final.bl[,tail(Quarters,1)])}. Panel A presents the results from the passive strategy. Panel B summarizes the results of the strategy with rankings based on price target.
@@ -787,15 +787,19 @@ print(xtable(results.final,display=c('s','f','f','f','d','f'),digits=3),only.con
   \end{tabularx}
 \end{table}
 
-%
-% \begin{figure}[ht]
-% \begin{center}
-% \includegraphics{BL-all-methods-bl-results-fig}
-% \end{center}
-% \caption{Performance of BL model}
-% \label{fig:bl-results}
-% \ In this figure we show the quarterly performance of the cumulative portfolio wealth for all strategies. Observe that the \true{} out-runs all the others in each of the types of rankings. Plots on the right of the figure depict the performance of the strategies with larger holding period: instead of 1 quarter, it is 4 quarters). We observer that in the EPS case, the \true{} fail to stay on top of the strategies. We observe that in the PT case, at least for some quarters, \true{} was on top of all strategies.
-% \end{figure}
+<<bl-results-fig,echo=FALSE, include=FALSE,results='hide',fig.width=10.7,fig.height=8.3>>=
+ggplot(final.bl[confAgg=='ma'],aes(x=as.Date(Quarters),y=cum.ret,group=Method,color=Method,shape=Method))+geom_line(size=0.5)+facet_wrap(~Views,scale='free_x')+ylab('Portfolio wealth (initial=$100)')+xlab('Quarters')+ggtitle('Portfolio performance with $100 initial investment')+theme_bw()+theme(plot.title = element_text(colour = "Black"),legend.position='top',legend.title=element_blank(),strip.text=element_text(size=20),text=element_text(size=20,family='Times'))+scale_color_grey()+geom_point()+geom_hline(yintercept=100)+scale_shape_manual(values=1:8)
+@
+
+
+\begin{figure}[hp]
+\begin{center}
+\includegraphics[width=\linewidth]{figure/bl-results-fig-1}
+\end{center}
+\caption{Performance of BL model}
+\label{fig:bl-results}
+\ In this figure we show the quarterly performance of the cumulative portfolio wealth for all strategies. Observe that the \true{} out-runs all the others in each of the types of rankings. Plots on the right of the figure depict the performance of the strategies with larger holding period: instead of 1 quarter, it is 4 quarters). We observer that in the EPS case, the \true{} fail to stay on top of the strategies. We observe that in the PT case, at least for some quarters, \true{} was on top of all strategies.
+\end{figure}
 
 
 
