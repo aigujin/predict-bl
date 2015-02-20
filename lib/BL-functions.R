@@ -81,11 +81,11 @@ non.rank.script.weights.env.f <- function(method,m,ret,conf,tau) {
                 views <- non.rank.makeViews(ret[q,],conf[q,],m[[q]]$stock.names)
                 bl <- black.litterman(tau,m[[q]]$impl.ret,views$confid,m[[q]]$sigma,views$p,views$Q,m[[q]]$rf)
                 n.views=nrow(views$Q)
-                
+
         opt.w <- optm.w.f(bl$postMu,bl$post.sigma,delta)
         #ns.opt.w <- optm.w.constains.f(bl$postMu,bl$post.sigma,delta)
 data.table(Stock=rownames(opt.w),opt.w=as.vector(opt.w[,1]),ns.opt.w=as.vector(opt.w[,2]),n.views=n.views,q.id=q,ex.ret=m[[q]]$ex.ret)[,':='(port.ret=sum(opt.w*ex.ret),ns.port.ret=sum(ns.opt.w*ex.ret),Method=method,Quarters=m[[q]]$Quarters)][,ann.port.ret:=(1+port.ret)^(1/4)-1]
-                
+
         })
 }
 
@@ -101,7 +101,7 @@ blcop.f <- function(method,m,ret,conf,tau) {
 opt.w <- getPortfolio(optimalPortfolios.fPort(bl)[[2]])$weights
 ns.opt.w <- getPortfolio(optimalPortfolios.fPort(bl,constraints = "Short")[[2]])$weights
                 data.table(Stock=names(opt.w),opt.w=as.vector(opt.w),ns.opt.w=as.vector(ns.opt.w),n.views=n.views,q.id=q,ex.ret=m[[q]]$ex.ret)[,':='(port.ret=sum(opt.w*ex.ret),ns.port.ret=sum(ns.opt.w*ex.ret),Method=method,Quarters=m[[q]]$Quarters)][,ann.port.ret:=(1+port.ret)^(1/4)-1]
-                
+
         })
 }
 
@@ -165,25 +165,25 @@ non.rank.makeViews <- function(q.ret,conf,sp.stocks){
         ### Set zeros and infinite to NAs:
         require(scales)
         cleanModel <- zeros2NA(q.ret)
-        
+
         ###Find stocks with  no NA, (no zero in returns) and accuracy:
         valid.stocks.ret <- names(show.no.na(cleanModel))
         valid.stocks.conf <- names(show.no.na(conf))
-        
-        
+
+
         ###Match stocks in views with stocks in SP500:
         valid.s <- intersect(sp.stocks,intersect(valid.stocks.ret,valid.stocks.conf))
         #valid.s <- valid.stocks[which(valid.stocks%in%sp.stocks)]
-        
+
         ###Obtaining Qs:
         Q <- as.matrix(q.ret[valid.s])
-        
+
         ###Obtaining BL omegas:
         omegas <- conf[valid.s]
         #scaled.accuracy<-round(rescale(conf[valid.s],from=c(-1,1)),4)
         #scaled.accuracy[scaled.accuracy==0] <- 0.00001
         #omegas <- (1-scaled.accuracy)/scaled.accuracy
-        
+
         ###Building the p-matrix, put 1's to matched stocks:
         pickMatrix<-diag(0, length(sp.stocks), length(sp.stocks))
         dimnames(pickMatrix) <- list(sp.stocks, sp.stocks)
@@ -310,7 +310,7 @@ turnover.f <- function(w.beg,w.end)
         purchases.TO<-ifelse(w.end-w.beg<0,0,w.end-w.beg)
         sales.TO<-ifelse(w.beg-w.end<0,0,w.beg-w.end)
         min(sum(purchases.TO,na.rm=T),sum(sales.TO,na.rm=T))
-        
+
 }
 
 
@@ -331,7 +331,7 @@ require("tseries")
 w <- as.matrix(portfolio.optim(t(postMu),covmat=post.sigma,shorts=F)$pw)
 #post.w.temp <- ginv(delta*Dmat)%*%postMu
 #w <- post.w.temp/sum(post.w.temp)
-#   
+#
 #   # Constraints: sum(w) = 1
 #   Amat <- matrix(1, nrow(Dmat))
 #   bvec <- 1
@@ -366,7 +366,7 @@ w <- as.matrix(portfolio.optim(t(postMu),covmat=post.sigma,shorts=F)$pw)
 
 
 opt.w.f <- function(views,conf,tau){
-        
+
         #rbindlist(lapply(agg.names,function(agg){
                 #list.conf <- alply(conf[,,,agg],2,.dims=T)
                 rbindlist(mclapply(dimnames(views)[[3]],function(type){
@@ -377,7 +377,7 @@ opt.w.f <- function(views,conf,tau){
 }
 
 script.blcop.f <- function(views,conf,tau){
-        
+
         #rbindlist(lapply(agg.names,function(agg){
         #list.conf <- alply(conf[,,,agg],2,.dims=T)
         rbindlist(lapply(names(views),function(type){
@@ -403,10 +403,10 @@ script.blcop.f <- function(views,conf,tau){
 operation.bl <- function(list.views,confidence,conf.id)
 {
   non.r.conf <- buildOmega(aperm(replicate(3,confidence),c(3,1,2)))
-  
+
   dimnames(non.r.conf)[[2]] <- names(list.views)
   non.r.conf[,'true',,][!is.na(non.r.conf[,'true',,])] <- 0
-  
+
   ##case.1.non.r.conf <- non.r.conf[,,all.s,]
   ##dimnames(case.1.non.r.conf)[[2]] <- names(list.views)
   opt.w.f(conf.id,list.views,non.r.conf,tau)
@@ -474,16 +474,16 @@ setkey(bl.results,Views,Method)[setkey(rbind(to.bl[,list(Views,Method,Ave.TO)],t
 pred.bl.results.f <- function(opt.w)
 {
         bl.results <- unique(opt.w,by=c('q.id','Method','Views','confAgg'))[,list(Quarters=as.yearqtr(Quarters),Views,Method,port.ret,ns.port.ret,ann.port.ret,n.views,q.id,confAgg)]
-        
+
         setkey(market.set,q.id)
-        market.set <- market.set[,':='(Views='Market',n.views=.N),by=q.id]
-        market.port.ret <- unique(market.set[,':='(port.ret=sum(mw*ex.ret),Method='Market',Views='Market',n.views=.N),by=q.id][,ann.port.ret:=(1+port.ret)^(1/4)-1][,ns.port.ret:=port.ret])[m.period[1]:44,list(Quarters=as.yearqtr(Quarters),Method,Views,port.ret,ns.port.ret,ann.port.ret,n.views)][,q.id:=.I]
-        
-        
+        market.set <- market.set[,':='(n.views=.N),by=q.id]
+        market.port.ret <- unique(market.set[,':='(port.ret=sum(mw*ex.ret),Method='Market',n.views=.N),by=q.id][,ann.port.ret:=(1+port.ret)^(1/4)-1][,ns.port.ret:=port.ret])[m.period[1]:44,list(Quarters=as.yearqtr(Quarters),Method,port.ret,ns.port.ret,ann.port.ret,n.views)][,q.id:=.I]
+
+
         #market.data <- rbind(market.port.ret.spy,market.port.ret)
-        
-        bl.results <- rbind(bl.results,bl.results[,as.list(market.port.ret),by=list(confAgg)],use.names=T)
-        
+
+        bl.results <- rbind(bl.results,bl.results[,as.list(market.port.ret),by=list(Views,confAgg)],use.names=T)
+
         bl.results[,c('cum.ret','ann.ret','ann.sd','meanViews'):=cum.ret.f(port.ret,n.views,100),by=list(Method,Views,confAgg)][,ann.sr:=ann.ret/ann.sd]
         setkey(bl.results,Method,confAgg,Views)
         to.bl <- rbindlist(lapply(2:length(m.period),function(b){
@@ -491,13 +491,14 @@ pred.bl.results.f <- function(opt.w)
                 end <- setkey(opt.w[q.id==b-1,list(Stock,opt.w),by=list(Method,confAgg,Views)],Stock,Method,confAgg,Views)
                 end[beg][,turnover.f(opt.w,i.opt.w),by=list(Method,confAgg,Views)]
         }))[,Ave.TO:=mean(V1),by=list(Method,confAgg,Views)]
-        
-        to.market <- rbindlist(lapply(2:length(m.period),function(b){
-                beg <- setkey(market.set[,q.num:=.GRP,by=q.id][q.num==m.period[b],list(Views,Stock,mw)],Stock,Views)
-                end <- setkey(market.set[,q.num:=.GRP,by=q.id][q.num==m.period[b-1],list(Views,Stock,mw)],Stock,Views)
-                end[beg,allow.cartesian=T][,turnover.f(mw,i.mw),by=Views]}))[,':='(Ave.TO=mean(V1),Method='Market'),by=list(Views)]
-        
-        setkey(bl.results,Views,Method,confAgg)[setkey(rbind(to.bl[,list(Views,Method,confAgg,Ave.TO)],to.bl[,as.list(unique(to.market,by='Ave.TO')[,list(Views,Method,Ave.TO)]),by=confAgg],use.names=T),Views,Method,confAgg),allow.cartesian=T]
+
+        to.market <- data.table(sapply(2:length(m.period),function(b){
+                beg <- setkey(market.set[,q.num:=.GRP,by=q.id][q.num==m.period[b],list(Stock,mw)],Stock)
+                end <- setkey(market.set[,q.num:=.GRP,by=q.id][q.num==m.period[b-1],list(Stock,mw)],Stock)
+                end[beg,allow.cartesian=T][,turnover.f(mw,i.mw)]
+                }))[,':='(Ave.TO=mean(V1),Method='Market')]
+
+        setkey(bl.results,Views,Method,confAgg)[setkey(rbind(to.bl[,list(Views,Method,confAgg,Ave.TO)],to.bl[,as.list(unique(to.market,by='Ave.TO')[,list(Method,Ave.TO)]),by=.(Views,confAgg)],use.names=T),Views,Method,confAgg),allow.cartesian=T]
 }
 
 omega.f <- function(conf){
