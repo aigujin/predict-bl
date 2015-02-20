@@ -29,6 +29,7 @@
 \newcommand{\naive}{\textit{recent}}
 \newcommand{\default}{\textit{all-time}}
 \newcommand{\market}{\textit{market}}
+\newcommand{\Market}{\textit{market}}
 \newcommand{\raw}{\textit{raw}}
 \newcommand{\diff}{\textit{diff}}
 \newcommand{\random}{\textit{random}}
@@ -112,15 +113,15 @@ final.bl$Method <- factor(final.bl$Method,levels=c(strategies,methods,'Market'))
 final.bl$Views <- factor(final.bl$Views,levels=unique(final.bl$Views)[c(2,1)])
 
 final.bl <- final.bl[,ann.ret:=ann.ret*100][,ann.st:=ann.sd*100]
-bl.results <- acast(unique(melt(data = final.bl,id.vars = c('Method','confAgg'),measure.vars  = c('ann.ret','ann.st','ann.sr','meanViews','Ave.TO')),by=c('Method','variable','confAgg')),Method~confAgg~variable,value.var = 'value')
+bl.results <- acast(unique(melt(data = final.bl,id.vars = c('Views','Method','confAgg'),measure.vars  = c('ann.ret','ann.st','ann.sr','meanViews','Ave.TO')),by=c('Views','Method','variable','confAgg')),Method~confAgg~variable~Views,value.var = 'value')
 
 quarters <- unique(final.bl[,Quarters])
 periods.id <- c(paste(gsub('[[:space:]]','',rollapplyr(as.character(quarters),20,first,by=4)),gsub('[[:space:]]','',rollapplyr(as.character(quarters),20,last,by=4)),sep='/'),'All period')
 
-periods <- rbind(final.bl[,data.table(rollapplyr(port.ret,20,roll.ret.f,by=4,partial=F)),by=.(confAgg,Method)][,strat:='yes'],final.bl[,data.table(rollapplyr(ns.port.ret,20,roll.ret.f,by=4,partial=F)),by=.(confAgg,Method)][,strat:='no'],final.bl[,data.table(roll.ret.f(port.ret)),by=.(confAgg,Method)][,strat:='yes'],final.bl[,data.table(roll.ret.f(ns.port.ret)),by=.(confAgg,Method)][,strat:='no'])[,period:=periods.id,by=.(confAgg,Method,strat)][,sr:=ann.ret/ann.sd]
+periods <- rbind(final.bl[,data.table(rollapplyr(port.ret,20,roll.ret.f,by=4,partial=F)),by=.(Views,confAgg,Method)][,strat:='yes'],final.bl[,data.table(rollapplyr(ns.port.ret,20,roll.ret.f,by=4,partial=F)),by=.(Views,confAgg,Method)][,strat:='no'],final.bl[,data.table(roll.ret.f(port.ret)),by=.(Views,confAgg,Method)][,strat:='yes'],final.bl[,data.table(roll.ret.f(ns.port.ret)),by=.(Views,confAgg,Method)][,strat:='no'])[,period:=periods.id,by=.(Views,confAgg,Method,strat)][,sr:=ann.ret/ann.sd]
 
 
-periods.array <- acast(unique(melt(periods,id.vars = c('confAgg','Method','period','strat')),by=c('confAgg','Method','period','strat','variable')),period~confAgg~Method~strat~variable,value.var = 'value')
+periods.array <- acast(unique(melt(periods,id.vars = c('Views','confAgg','Method','period','strat')),by=c('Views','confAgg','Method','period','strat','variable')),period~confAgg~Method~strat~variable~Views,value.var = 'value')
 
 start.year <- format(as.Date(final.bl[,head(Quarters,1)]),'%Y')
 end.year <- format(as.Date(final.bl[,tail(Quarters,1)]),'%Y')
@@ -438,13 +439,20 @@ Each of these methods produces a different set of attributes. By using the algor
 
 We apply a practical implementation of use of the rankings. For this purpose, we performed back-test trading implementing the Black-Litterman strategy outlined in section (\ref{sec:trading}). The results are presented in table (\ref{tab:strategy}).
 
-Panel A reports the performance of \market{} (passive strategy). This strategy showed annualized cumulative return of \Sexpr{bl.results[8,3,1]} and annualized Sharpe ratio of \Sexpr{round(bl.results[8,3,3],3)}. The average number of stocks used per quarter is \Sexpr{round(bl.results[8,3,4])} and the turnover ratio of strategy is \Sexpr{round(bl.results[8,3,5],3)} which demonstrates the ins/outs of the S\&P 500 constituents list.
+Panel A reports the performance of \market{} (passive strategy). This strategy showed annualized cumulative return of \Sexpr{round(bl.results[8,3,1,1],2)}\% and annualized Sharpe ratio of \Sexpr{round(bl.results[8,3,3,1],3)}. The average number of stocks used per quarter is \Sexpr{round(bl.results[8,3,4,1])} and the turnover ratio of strategy is \Sexpr{round(bl.results[8,3,5,1],3)} which demonstrates the ins/outs of the S\&P 500 constituents list.
 
-Panel B of the table demonstrates the results of trading with rankings based on price target. Observe that consistent with our assumption, the \true{} resulted in the maximum possible annual cumulative return and the Sharpe ratio ( \Sexpr{bl.results['true',3,1]} and  \Sexpr{bl.results['true',3,3]} respectively). This implies that in the settings where analysts' expected returns and rankings are based on price targets, an investor can gain a maximum results from trading strategy. Given the hypothetical assumption of \true{}, it is not feasible to implement. The next best strategy is
-<<max.strat,echo=FALSE,results='asis'>>=
-cat(paste0('\\',gsub('[[:punct:]]','',names(which.max(bl.results[2:8,2,1]))),'{}'))
+Panel B of the table demonstrates the results of trading with rankings based on price target. Observe that consistent with our assumption, the \true{} resulted in the maximum possible annual cumulative return and the Sharpe ratio (\Sexpr{round(bl.results['true',3,1,1],2)}\% and  \Sexpr{round(bl.results['true',3,3,1],3)} respectively). This implies that in the settings where analysts' expected returns and rankings are based on price targets, an investor can gain a maximum results from trading strategy. Given the hypothetical assumption of \true{}, it is not feasible to implement. The next best strategy is
+<<pt.max.strat,echo=FALSE,results='asis'>>=
+cat(paste0('\\',gsub('[[:punct:]]','',names(which.max(bl.results[2:8,3,1,1]))),'{}'))
 @
-which is based on our algorithm of predicting the rankings. This strategy resulted in annual cumulative return of \Sexpr{max(bl.results[2:8,2,1])} and the Sharpe ratio of \Sexpr{max(bl.results[2:8,2,3])}. In addition, the average per quarter turnover ratio of this strategy of \Sexpr{max(bl.results[2:8,2,5])} implies relative low trading costs.
+which is based on our algorithm of predicting the rankings. This strategy resulted in annual cumulative return of \Sexpr{round(max(bl.results[2:8,3,1,1]),2)}\% and the Sharpe ratio of \Sexpr{round(max(bl.results[2:8,3,3,1]),3)}. In addition, the average per quarter turnover ratio of this strategy of \Sexpr{round(max(bl.results[2:8,2,5,1]),3)} implies relative low trading costs.
+
+Panel C of the table demonstrates the results of trading with rankings based on EPS. For this case, the \true{} resulted in the maximum possible annual cumulative return and the Sharpe ratio (\Sexpr{round(bl.results['true',3,1,2],2)}\% and  \Sexpr{round(bl.results['true',3,3,2],3)} respectively). This implies that in the settings where analysts' expected returns and rankings are based on price targets, an investor can gain a maximum results from trading strategy. Given the hypothetical assumption of \true{}, it is not feasible to implement. The next best strategy is
+<<eps.max.strat,echo=FALSE,results='asis'>>=
+cat(paste0('\\',gsub('[[:punct:]]','',names(which.max(bl.results[2:8,3,1,2]))),'{}'))
+@
+which is based on our algorithm of predicting the rankings. This strategy resulted in annual cumulative return of \Sexpr{round(max(bl.results[2:8,3,1,2]),2)}\% and the Sharpe ratio of \Sexpr{round(max(bl.results[2:8,3,3,2]),3)}. In addition, the average per quarter turnover ratio of this strategy of \Sexpr{round(max(bl.results[2:8,2,5,2]),3)} implies relative low trading costs.
+
 
 Figure \ref{fig:bl-results} plots the graphical representation of the cumulative returns for all methods of trading strategy. We see that the \true{} strategy is always on top of all the others. We observe that the best outcome of the strategy achieved for the method of prediction of rankings with first difference of the independent variables.
 
@@ -750,7 +758,7 @@ print(xtable(data[1:7,2:8],display=c('f','f','f','f','f','d','d','d')),only.cont
   \begin{tabularx}{\linewidth}{r*{5}{Y}}
     \toprule
 <<bl-market,echo=F,results='asis'>>=
-results.final <- bl.results[8,2,]
+results.final <- bl.results[8,3,,1]
 cat(paste(c('Strategy','Annualized cum. return (in \\%)','Annualized Std. dev (in \\%)','Sharpe ratio' ,'Average num. stock','Average turnover rate'), collapse = "&"),'\\\\')
 #cat('\\multicolumn{5}{l}{\\textbf{Panel A: Market}} \n')
 print(xtable(t(data.table('\\textit{Market}'=results.final)),display=c('s','f','f','f','d','f'),digits=3,align=c('r',rep('c',length(results.final)))),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(0),command=c('\\multicolumn{5}{l}{\\textbf{Panel A}} \\\\ \n')),sanitize.text.function = function(x) x)
@@ -758,14 +766,22 @@ print(xtable(t(data.table('\\textit{Market}'=results.final)),display=c('s','f','
   \end{tabularx}
 \begin{tabularx}{\linewidth}{r*{5}{Y}}
     \toprule
-    \multicolumn{5}{l}{\textbf{Panel B: Price Target strategy}} \\
+    \multicolumn{5}{l}{\textbf{Panel B: TP}} \\
     \midrule
 <<bl-pt,echo=F,results='asis'>>=
-results.final <- bl.results[1:7,2,]
-
-
+results.final <- bl.results[1:7,3,,1]
 rownames(results.final) <- paste0('\\',gsub('[[:punct:]]|[[:digit:]]','',c(baselines,methods)),'{}')
-print(xtable(results.final,display=c('s','f','f','f','d','f'),digits=3),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(nrow(bl.results[1:3,1,])),command=c('\\midrule \n')),sanitize.text.function = function(x) x)
+print(xtable(results.final,display=c('s','f','f','f','d','f'),digits=3),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(nrow(bl.results[1:3,1,,])),command=c('\\midrule \n')),sanitize.text.function = function(x) x)
+@
+  \end{tabularx}
+  \begin{tabularx}{\linewidth}{r*{5}{Y}}
+    \midrule
+    \multicolumn{5}{l}{\textbf{Panel C: EPS}} \\
+    \midrule
+<<bl-eps,echo=F,results='asis'>>=
+results.final <- bl.results[1:7,3,,2]
+rownames(results.final) <- paste0('\\',gsub('[[:punct:]]|[[:digit:]]','',c(baselines,methods)),'{}')
+print(xtable(results.final,display=c('s','f','f','f','d','f'),digits=3),only.contents=T,include.colnames=FALSE,hline.after=NULL, format.args=list(big.mark = " ", decimal.mark = "."),add.to.row=list(pos=list(nrow(bl.results[1:3,1,,])),command=c('\\midrule \n')),sanitize.text.function = function(x) x)
 @
     \bottomrule
   \end{tabularx}
