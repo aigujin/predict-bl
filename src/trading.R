@@ -47,7 +47,7 @@ meanTper <- melt(core.dt[,merge(setkey(quarters,q.id),.SD,all=T),by=list(Broker,
 
 cons.list.rank <- acast(unique(meanTper,by=c('q.id','Stock','Method')),q.id~Stock~Method,value.var='exp.ret')[dimnames(pt.list.rank)[[1]],pt.stocks,]
 
-conf.dt <- melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=NA_real_,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons')
+conf.dt <- melt(unique(core.dt,by=c('q.id','Stock'),fromLast = T)[,.(q.id,Stock,s.coefVar)][,true:=0][,naive:=c(NA,head(s.coefVar,-1)),by=Stock][,default:=grow.window.f(s.coefVar,seq_len(length(s.coefVar)),mean,na.rm=T),by=Stock][,eval(pred.id):=naive,by=Stock],id.vars = c('q.id','Stock'),measure.vars=c(baselines,pred.id),value.name='cons')
 
 
 cons.conf.coef <- acast(conf.dt,q.id~Stock~variable,value.var='cons')[dimnames(conf.coef)[[1]],pt.stocks,drop=F,]
@@ -57,12 +57,8 @@ cons.conf.coef <- acast(conf.dt,q.id~Stock~variable,value.var='cons')[dimnames(c
 bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))
 
-pt.opt.w<- rbindlist(lapply(confid.id, function(i){
-        opt.w.f(pt.list.rank,conf.coef[,pt.stocks,,i],tau)[,confAgg:=i]}))[,Views:='TP']
-
-eps.opt.w<- rbindlist(lapply(confid.id, function(i){
-  opt.w.f(eps.list.rank,conf.coef[,eps.stocks,,i],tau)[,confAgg:=i]}))[,Views:='EPS']
-
+pt.opt.w<- opt.w.f(pt.list.rank,cons.conf.coef[,pt.stocks,],tau)[,Views:='TP']
+eps.opt.w<- opt.w.f(eps.list.rank,conf.coef[,eps.stocks,],tau)[,Views:='EPS']
 cons.opt.w<- opt.w.f(cons.list.rank,cons.conf.coef,tau)[,Views:='CONS']
 
 
