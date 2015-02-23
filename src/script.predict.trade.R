@@ -9,14 +9,19 @@ delta<-1L;tau=1/50;baselines <- c('true','naive','default');pred.id<-c('raw','di
 ### market data: ~ 113 sec (mcapply: ~ 52 sec)
 system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/01-data.q.ret.R'))
 
+
 ### State var. data: ~118 sec
 system.time(source('munge/state-variables.R'))
 ### Analysts ranking data: ~ 280 sec
 system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/03-analysts.process.R'))
 ### Predicting ~ 347 sec
 sel.vvs <- vvs.names[-c(6,9)]
-system.time(source('src/predicting.R'))
 
+### EPS data
+load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
+system.time(source('~/Dropbox/workspace/Projects/EPS/src/predicting.R'))
+
+system.time(source('src/predicting.R'))
 pt.accu[,mean(value),by=.(variable)]
 
 ggplot(pt.accu[,mean(value),by=.(q.id,variable)],aes(x=as.Date(q.id),y=V1,group=variable,color=variable))+geom_line(size=0.5,alpha=0.7)+geom_smooth(method='loess',se=F,size=1L)+theme_bw()
