@@ -58,13 +58,12 @@ bl.period <- 1:dim(pt.list.rank)[[1]]
 m.period <-(length(market.list)-length(bl.period)+1) : (length(market.list))
 
 pt.opt.w<- opt.w.f(pt.list.rank,cons.conf.coef[,pt.stocks,],tau)[,Views:='TP']
-eps.opt.w<- opt.w.f(eps.list.rank,conf.coef[,eps.stocks,],tau)[,Views:='EPS']
+eps.opt.w<- opt.w.f(eps.list.rank,cons.conf.coef[,eps.stocks,],tau)[,Views:='EPS']
 cons.opt.w<- opt.w.f(cons.list.rank,cons.conf.coef,tau)[,Views:='CONS']
 
 
-opt.w.tmp <- rbind(pt.opt.w,eps.opt.w)
+opt.w<- rbind(pt.opt.w,eps.opt.w,cons.opt.w)[,confAgg:='cons']
 
-opt.w <- rbind(opt.w.tmp,opt.w.tmp[,as.list(cons.opt.w),by=confAgg],use.names=T)
 
 final.bl <- setkey(unique(pred.bl.results.f(opt.w),by=c('Method','q.id','Views','confAgg')),Method)
 cache('final.bl')
