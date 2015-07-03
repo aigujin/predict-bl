@@ -15,7 +15,7 @@ system.time(source('munge/state-variables.R'))
 ### Analysts ranking data: ~ 280 sec
 system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/03-analysts.process.R'))
 ### Predicting ~ 347 sec
-sel.vvs <- vvs.names[-c(6L,9L)]
+sel.vvs <- vvs.names
 
 ### EPS data
 load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
@@ -23,8 +23,9 @@ system.time(source('~/Dropbox/workspace/Projects/EPS/src/predicting.R'))
 
 system.time(source('src/predicting.R'))
 pt.accu[,mean(value),by=.(variable)]
+eps.accu[,mean(value),by=.(variable)]
 
-ggplot(pt.accu[,mean(value),by=.(q.id,variable)],aes(x=as.Date(q.id),y=V1,group=variable,color=variable))+geom_line(size=0.5,alpha=0.7)+geom_smooth(method='loess',se=F,size=1L)+theme_bw()
+ggplot(eps.accu[,mean(value),by=.(q.id,variable)],aes(x=as.Date(q.id),y=V1,group=variable,color=variable))+geom_line(size=0.5,alpha=0.7)+geom_smooth(method='loess',se=F,size=1L)+theme_bw()
 
 ### trading: ~ 322 sec
 system.time(source('src/trading.R'))
@@ -37,6 +38,6 @@ ggplot(final.bl,aes(x=as.Date(Quarters),y=cum.ret,group=Method,color=Method))+ge
 ggplot(unique(melt(final.bl[,list(Views,Method,confAgg,ann.ret,ann.sd,ann.sr)],id.vars=c('Method','Views','confAgg'))),aes(x=Method,y=value))+geom_bar(aes(fill=Method),stat='identity',alpha=0.7)+facet_grid(variable~confAgg~Views,scale='free_y')+theme_bw(base_family='Avenir')+ggtitle('Annualized portfolio measures (return, st.dev, and the Sharpe ratio) \n conditional on confidence aggregation')+theme(plot.title = element_text(colour = "Blue"),legend.position='top',axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+scale_y_continuous(labels=percent)+ylab('Percent')+geom_text(aes(label=round(value,3L)*100L),angle=90L,size=3L,hjust=1.2)+scale_fill_manual(values=getPalette(colourCount))
 
 require(knitr)
-setwd('~/Dropbox/workspace/Projects/Black-Litterman/doc/paper/')
-knit2pdf('chapter-4-knitr.Rnw',quiet=T)
+setwd('~/Dropbox/workspace/Projects/Thesis/ch4/')
+knit2pdf('paper4.Rnw',quiet=T)
 setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
