@@ -3,7 +3,7 @@ setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
 
 library(ProjectTemplate)
 load.project()
-delta<-1L;tau=1/50;baselines <- c('true','naive','default');pred.id<-c('raw','diff','random','roll.sd');confid.id <- c('last','ma');percentile <- 0.05;rank.parameters <- c(n=100L,diff.lag=1L,sd.lag=8L,roll.p=15L)
+delta<-1L;tau=1/50;baselines <- c('true','naive','default');pred.id<-c('last','diff','random','roll.sd');confid.id <- c('last','ma');percentile <- 0.05;rank.parameters <- c(n=100L,diff.lag=1L,sd.lag=8L,roll.p=15L,rank.method='roll')
 ##rolling rankings: 20 qtrs - no winning; 16 qtrs - win roll.sd (last); 12
 #require(labelRank)
 ### market data: ~ 113 sec (mcapply: ~ 52 sec)
@@ -15,13 +15,13 @@ system.time(source('munge/state-variables.R'))
 ### Analysts ranking data: ~ 280 sec
 system.time(source('~/Dropbox/workspace/Projects/BL-strategies/munge/03-analysts.process.R'))
 ### Predicting ~ 347 sec
-sel.vvs <- vvs.names
+#sel.vvs <- vvs.names[-c(6,9)]
+sel.vvs <- vvs.names[c(3,11,13)]
 
 ### EPS data
 load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
-system.time(source('~/Dropbox/workspace/Projects/EPS/src/predicting.R'))
-
 system.time(source('src/predicting.R'))
+
 pt.accu[,mean(value),by=.(variable)]
 eps.accu[,mean(value),by=.(variable)]
 

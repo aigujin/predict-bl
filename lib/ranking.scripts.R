@@ -195,8 +195,6 @@ predict.ranking.script.f <- function(methods, stock.names, stock,  tr, r.paramet
           abind(lapply(methods , function(meth) {
 
       rankings.time.corrected.gw.cont(tr[, , s], mod.vvs[,,meth], n)
-      #analyst.prediction.f(tr[, , s], mod.vvs[,,meth], n)
-      #roll.analyst.prediction.f(tr[, , s], mod.vvs[,,meth], n,x)
     }), along = 3)
   },mc.cores=4), along = 4, new.names = list(dimnames(tr)[[2]],NULL, methods,stock.names))
 }
@@ -216,25 +214,6 @@ roll.ranking.f <- function(methods, stock.names, stock,  tr, r.parameters) {
                 }), along = 3)
         },mc.cores=4), along = 4, new.names = list(dimnames(tr)[[2]],NULL, methods,stock.names))
 }
-### Good results script
-# predict.ranking.script.f <- function(methods, stock.names, stock, tr, r.parameters) {
-#         n = as.numeric(r.parameters[1])
-#         diff.lag = as.numeric(r.parameters[2])
-#         sd.lag = as.numeric(r.parameters[3])
-#
-#         abind(mclapply(methods, function(meth) {
-#                 abind(lapply(stock.names, function(s) {
-#                         #per.stock.vvs <- stock[, s, ]
-#                         #per.stock.vvs[is.infinite(as.matrix(per.stock.vvs))] <- NA
-#                         #mod.vvs <- ind.var.versions(per.stock.vvs, meth, diff.lag,sd.lag)
-#                         mod.vvs <- acast(setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,state.vvs.f(value,diff.lag,sd.lag),by=vvs][,q.num:=1:.N,by=vvs],q.num~vvs,value.var = meth)
-#
-#                         #setnames(data.table(melt(stock[,s,])),c('q.id','vvs','value'))[,state.vvs.f(value,diff.lag,sd.lag),by=vvs][,q.num:=1:.N,by=vvs][vvs=='debt.to.eq']
-#
-#                         rankings.time.corrected.gw.cont(tr[, , s], mod.vvs, n)
-#                 }), along = 3)
-#         },mc.cores=4), along = 4, new.names = list(dimnames(tr)[[2]],NULL, dimnames(tr)[[3]], methods))
-# }
 
 analyst.prediction.f <- function(rank,features,n){
 sapply(4:nrow(rank),function(t){
@@ -295,4 +274,25 @@ evaluation.simple <- function(tr,pr,method='spearman',use='p')
   cor(tr,pr,method=method,use=use)
 }
 
+rank.function.f <- function(rank.f='roll',pred.id,stocks,stock.vvs,tr,param)
+{
 
+  if(rank.f=='roll') {
+    baselines.rank <- roll.baselines.f(tr,param[[4]])
+    pred.r <- roll.ranking.f(pred.id,stocks,stock.vvs,tr,param)
+    all.rankings <- abind(aperm(baselines.rank,c(4,1,2,3)),aperm(pred.r,c(2,1,4,3)),along=4)
+    dimnames(all.rankings)[[4]] <- c(baselines,pred.id)
+    dimnames(all.rankings)[[1]] <- rollapply(dimnames(tr)[[1]],param[[4]]+1,last)
+  } else
+  {
+    baselines.rank <- baseline.rankings.f(tr,start.q=3)
+    dimnames(baselines.rank)[[1]] <- dimnames(tr)[[1]][3:length(dimnames(tr)[[1]])]
+    pred.r<- predict.ranking.script.f(pred.id,stocks,stock.vvs,tr,param)
+    all.rankings <- abind(baselines.rank[(dim(baselines.rank)[1]-dim(pred.r)[2]+1):dim(baselines.rank)[1],,,],aperm(pred.r,c(2,1,4,3)),along=4)
+  }
+
+  ranked.dt <- setkey(setnames(data.table(reshape2::melt(all.rankings)),c('q.id','Broker','Stock','Method','rank'))[,q.id:=as.yearqtr(q.id)],q.id,Stock,Broker,Method)
+
+  accu <- melt(dcast.data.table(ranked.dt,q.id+Stock+Broker~Method,value.var='rank')[,lapply(.SD,function(i){evaluation.simple(.SD[[1]],i) }),by=.(q.id,Stock),.SDcols=c(baselines,pred.id)],id.vars=c('q.id','Stock'),na.rm=T)
+  list(ranked.dt,accu)
+}
