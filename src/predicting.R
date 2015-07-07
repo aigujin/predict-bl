@@ -7,8 +7,8 @@ quarters <- data.table(q.id=sort(unique(core.dt[,q.id])))
 
 pt.tr <- acast(core.dt,q.id~Broker~Stock,value.var='true')
 
-stocks <- intersect(intersect(intersect(dimnames(pt.new)[[3]],dimnames(array.all.vvs)[[2]]),market.set[,Stock]),dimnames(broker.vvs)[[2]])
-stock.vvs <- vvs.combine(stocks,broker.vvs,array.all.vvs,t=dim(pt.new)[1])
+stocks <- intersect(intersect(intersect(dimnames(pt.tr)[[3]],dimnames(array.all.vvs)[[2]]),market.set[,Stock]),dimnames(broker.vvs)[[2]])
+stock.vvs <- vvs.combine(stocks,broker.vvs,array.all.vvs,t=dim(pt.tr)[1])
 
 
 pt.rank <- rank.function.f(rank.method,pred.id,stocks,stock.vvs[,,sel.vvs],pt.tr[,,stocks],rank.parameters)
@@ -27,3 +27,9 @@ stock.vvs <- vvs.combine(stocks,broker.vvs,array.all.vvs,t=dim(eps.tr)[1])
 eps.rank <- rank.function.f(rank.method,pred.id,stocks,stock.vvs[,,sel.vvs],eps.tr[,,stocks],rank.parameters)
 
 rm('broker.vvs','quarters','eps.tr','stocks','stock.vvs')
+
+
+ranked.pt.dt <- pt.rank[[1]]
+pt.accu <- pt.rank[[2]]
+ranked.eps.dt <- eps.rank[[1]]
+eps.accu <- eps.rank[[2]]

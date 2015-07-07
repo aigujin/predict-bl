@@ -3,7 +3,7 @@ setwd('~/Dropbox/workspace/Projects/Black-Litterman/')
 
 library(ProjectTemplate)
 load.project()
-delta<-1L;tau=1/50;baselines <- c('true','naive','default');pred.id<-c('last','diff','random','roll.sd');confid.id <- c('last','ma');percentile <- 0.05;rank.parameters <- c(n=100L,diff.lag=1L,sd.lag=8L,roll.p=15L,rank.method='roll')
+delta<-1L;tau=1/50;baselines <- c('true','naive','default');pred.id<-c('last','diff','random','roll.sd');confid.id <- c('last','ma');percentile <- 0.05;rank.parameters <- c(n=1000L,diff.lag=1L,sd.lag=8L,roll.p=15L);rank.method <- 'roll'
 ##rolling rankings: 20 qtrs - no winning; 16 qtrs - win roll.sd (last); 12
 #require(labelRank)
 ### market data: ~ 113 sec (mcapply: ~ 52 sec)
@@ -22,6 +22,7 @@ sel.vvs <- vvs.names[c(3,11,13)]
 load('~/Dropbox/workspace/Projects/EPS/cache/complete.dt.RData')
 system.time(source('src/predicting.R'))
 
+
 pt.accu[,mean(value),by=.(variable)]
 eps.accu[,mean(value),by=.(variable)]
 
@@ -35,7 +36,7 @@ system.time(source('src/trading.R'))
 
 ggplot(final.bl,aes(x=as.Date(Quarters),y=cum.ret,group=Method,color=Method))+geom_line(size=0.5)+ylab('Portfolio wealth (initial=$100)')+xlab('Quarters')+ggtitle('Portfolio performance with $100 initial investment')+theme_bw(base_family='Avenir')+theme(plot.title = element_text(colour = "Blue"),legend.position='top')+scale_color_manual(values=getPalette(colourCount))+guides(color=guide_legend(nrow=1L))+geom_hline(yintercept=100L)+facet_grid(~Views,scale='free_x')
 
-ggplot(unique(melt(final.bl[,list(Views,Method,confAgg,ann.ret,ann.sd,ann.sr)],id.vars=c('Method','Views','confAgg'))),aes(x=Method,y=value))+geom_bar(aes(fill=Method),stat='identity',alpha=0.7)+facet_grid(variable~confAgg~Views,scale='free_y')+theme_bw(base_family='Avenir')+ggtitle('Annualized portfolio measures (return, st.dev, and the Sharpe ratio) \n conditional on confidence aggregation')+theme(plot.title = element_text(colour = "Blue"),legend.position='top',axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+scale_y_continuous(labels=percent)+ylab('Percent')+geom_text(aes(label=round(value,3L)*100L),angle=90L,size=3L,hjust=1.2)+scale_fill_manual(values=getPalette(colourCount))
+ggplot(unique(melt(final.bl[,list(Views,Method,confAgg,ann.ret,ann.sd,ann.sr)],id.vars=c('Method','Views','confAgg'))),aes(x=Method,y=value))+geom_bar(aes(fill=Method),stat='identity',alpha=0.7)+facet_grid(variable~Views,scale='free_y')+theme_bw(base_family='Avenir')+ggtitle('Annualized portfolio measures (return, st.dev, and the Sharpe ratio) \n conditional on confidence aggregation')+theme(plot.title = element_text(colour = "Blue"),legend.position='top',axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+scale_y_continuous(labels=percent)+ylab('Percent')+geom_text(aes(label=round(value,3L)*100L),angle=90L,size=3L,hjust=1.2)+scale_fill_manual(values=getPalette(colourCount))
 
 require(knitr)
 setwd('~/Dropbox/workspace/Projects/Thesis/ch4/')
